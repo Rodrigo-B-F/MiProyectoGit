@@ -1,7 +1,7 @@
 git clone URL
 python3 -m venv mi_entorno
 source mi_entorno/bin/actívate  #linux
-source mi_entorno/Scripts/actívate  #Windows
+source mi_entorno/Scripts/activate  #Windows
 pip install -r requirements.txt
 git add .
 git commit -m "Comentar cambio"
