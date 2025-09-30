@@ -1,23 +1,26 @@
 Project Structure
 
-MiProyectoGit/
-├── src/
-│   ├── app.py                # Aplicación principal con Streamlit (interfaz gráfica)
-|   ├── init_db.py
-|   ├── cli.py                # Aplicación en la terminal
-│   ├── backend/
-│   │   ├── __init__.py
-│   │   ├── models.py         # Definición de tablas (Peewee ORM)
-│   │   ├── data_loader.py    # Importar/exportar datos, inicialización de BD
-│   │   └── services.py       # Lógica de negocio (ventas, movimientos de stock, etc.)
-│   ├── data/
-|   |   └── tienda.db         # Base de datos SQLite manejada por Peewee
-|   └── utils/
-│       └── helpers.py        # Funciones utilitarias (validaciones, formateo, etc.)
-├── tests/
-│   └── test_models.py        # Pruebas unitarias para validar los modelos
-├── docs/
-│   └── arquitectura.md       # Documentación de la estructura
-├── requirements.txt          # Librerías necesarias
-├── README.md                 # Instrucciones del proyecto
-└── LICENSE
+MiProyectoGit
+├── docs
+│   └── arquitectura.md      # Documentación.
+├── mi_entorno               # Entorno virtual (debe ser ignorado por Git).
+│   └── ...
+├── src                      # Código Fuente Principal
+│   ├── __pycache__
+│   │   └── ... (.pyc files)
+│   ├── backend              # Lógica de Negocio
+│   │   ├── __pycache__
+│   │   │   └── ... (.pyc files)
+│   │   ├── data_loader.py
+│   │   ├── models.py
+│   │   └── services.py
+│   ├── data                 # Archivos de datos estáticos y base de datos
+│   │   └── tienda.db        # ¡Ubicación confirmada!
+│   ├── utils                # Funciones de utilidad.
+│   ├── app.py               # Punto de entrada de la aplicación/API.
+│   ├── cli.py               # Herramientas de línea de comandos.
+│   └── init_db.py           # Lógica de inicialización de la DB.
+├── tests                    # Carpeta para pruebas.
+├── Github.txt
+├── README.md
+└── requirements.txt         # Dependencias.
