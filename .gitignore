@@ -1,0 +1,15 @@
+# Entorno virtual
+mi_entorno/
+
+# Archivos de base de datos
+*.db
+
+# Archivos temporales de Jupyter
+.ipynb_checkpoints/
+*.json
+*.js
+*.js.map
+
+# Archivos generados por Python
+__pycache__/
+*.pyc
