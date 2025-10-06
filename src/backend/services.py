@@ -140,16 +140,49 @@ def record_sale(items_to_sell):
         if not db.is_closed():
             db.close()
 
+def toggle_product_status(barcode, new_status=None):
+    """
+    Activa o desactiva un producto (cambia el campo 'active').
+    Si new_status no se proporciona, invierte el estado actual.
+    
+    Retorna (True, mensaje_exito) o (False, mensaje_error).
+    """
+    try:
+        db.connect()
+        with db.atomic():
+            product = Product.get(Product.barcode == barcode)
+            
+            # Determinar el nuevo estado
+            if new_status is None:
+                new_status = not product.active
+            
+            product.active = new_status
+            product.save()
+            
+            status_text = "activado" if new_status else "desactivado"
+            
+        return True, f"Producto '{product.name}' ({barcode}) ha sido {status_text} exitosamente."
+        
+    except Product.DoesNotExist:
+        return False, f"Error: Producto con código {barcode} no encontrado."
+    except Exception as e:
+        return False, f"Error al cambiar el estado del producto: {e}"
+    finally:
+        if not db.is_closed():
+            db.close()
 
-def list_products_inventory():
+def list_products_inventory(option):
     """Lista productos con inventario, categoría y ganancia."""
     try:
         db.connect()
+        if option == 1: option = True
+        else: option = False
         query = (Inventory
                  .select(Inventory, Product, Category)
                  .join(Product)
-                 .join(Category, JOIN.LEFT_OUTER))
-
+                 .join(Category, JOIN.LEFT_OUTER)
+                 .where(Product.active == option))
+        
         data = []
         for inv in query:
             prod = inv.product
@@ -157,10 +190,15 @@ def list_products_inventory():
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else None,
+                "unit": prod.unit,
                 "quantity": inv.quantity,
+                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
                 "profit": prod.profit,
-                "expiration_date": prod.expiration_date
+                "date_added": prod.date_added,
+                "expiration_date": prod.expiration_date,
+                "location": prod.location,
+                "active": prod.active
             })
         return data
     except Exception as e:
@@ -198,8 +236,15 @@ def find_product_by_name_or_barcode(search):
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else None,
+                "unit": prod.unit,
                 "quantity": inv.quantity if inv else 0,
-                "sale_price": prod.sale_price
+                "purchase_price": prod.purchase_price,
+                "sale_price": prod.sale_price,
+                "profit": prod.profit,
+                "date_added": prod.date_added,
+                "expiration_date": prod.expiration_date,
+                "location": prod.location,
+                "active": prod.active
             })
         return data
     except Exception as e:
@@ -230,22 +275,51 @@ def filter_products_by_category(category_name):
             db.close()
 
 
-def list_expiring_products(days=30):
-    """Lista productos próximos a vencer en X días."""
+def list_expiring_products(days=10):
+    """
+    Lista productos próximos a vencer en X días.
+    Retorna lista de diccionarios con todos los detalles del producto.
+    """
     try:
         db.connect()
         date_limit = datetime.date.today() + datetime.timedelta(days=days)
+        
+        # 1. Ajustar la consulta para seleccionar los modelos Product, Inventory y Category
         query = (Product
-                 .select(Product.name, Product.expiration_date, Inventory.quantity, Product.location)
+                 .select(Product, Inventory, Category) 
                  .join(Inventory, JOIN.LEFT_OUTER)
+                 .switch(Product)
+                 .join(Category, JOIN.LEFT_OUTER) # Incluimos Category
                  .where(
                      (Product.expiration_date.is_null(False)) &
                      (Product.expiration_date <= date_limit) &
-                     (Product.expiration_date >= datetime.date.today())
+                     (Product.expiration_date >= datetime.date.today()) &
+                     (Product.active == True)
                  )
-                 .order_by(Product.expiration_date)
-                 .dicts())
-        return list(query)
+                 .order_by(Product.expiration_date))
+        
+        data = []
+        for prod in query:
+            # Intentar obtener el inventario, si no existe, quantity es 0
+            inv_quantity = prod.inventory.quantity if hasattr(prod, 'inventory') else 0
+
+            # 2. Construir el diccionario con todos los campos solicitados
+            data.append({
+                "name": prod.name,
+                "barcode": prod.barcode,
+                "category_name": prod.category.name if prod.category else None,
+                "unit": prod.unit,
+                "quantity": inv_quantity,
+                "purchase_price": prod.purchase_price,
+                "sale_price": prod.sale_price,
+                "profit": prod.profit,
+                "date_added": prod.date_added,
+                "expiration_date": prod.expiration_date,
+                "location": prod.location,
+                "active": prod.active
+            })
+        return data
+        
     except Exception as e:
         print(f"Error al listar vencimientos: {e}")
         return []
@@ -327,10 +401,15 @@ def list_available_products():
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else None,
-                "quantity": inv.quantity,
+                "unit": prod.unit,
+                "quantity": inv.quantity if inv else 0,
+                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
                 "profit": prod.profit,
-                "expiration_date": prod.expiration_date
+                "date_added": prod.date_added,
+                "expiration_date": prod.expiration_date,
+                "location": prod.location,
+                "active": prod.active
             })
         return data
     except Exception as e:
@@ -357,9 +436,15 @@ def list_out_of_stock_products():
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else None,
-                "quantity": inv.quantity,
+                "unit": prod.unit,
+                "quantity": inv.quantity if inv else 0,
+                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
-                "expiration_date": prod.expiration_date
+                "profit": prod.profit,
+                "date_added": prod.date_added,
+                "expiration_date": prod.expiration_date,
+                "location": prod.location,
+                "active": prod.active
             })
         return data
     except Exception as e:
@@ -419,16 +504,134 @@ def list_products_by_category(category_name):
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else None,
+                "unit": prod.unit,
                 "quantity": inv.quantity if inv else 0,
+                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
                 "profit": prod.profit,
+                "date_added": prod.date_added,
                 "expiration_date": prod.expiration_date,
-                "location": prod.location
+                "location": prod.location,
+                "active": prod.active
             })
         return data
     except Exception as e:
         print(f"Error al listar por categoría: {e}")
         return []
+    finally:
+        if not db.is_closed():
+            db.close()
+
+def update_product_details(old_barcode, name=None, new_barcode=None, category_name=None, unit=None, 
+                           location=None, purchase_price=None, sale_price=None, 
+                           expiration_date_str=None):
+    """
+    Modifica los detalles de un producto existente.
+    Usa old_barcode para encontrar el producto. Solo actualiza los campos
+    que no son None o cadenas vacías.
+    
+    Retorna (True, mensaje_exito) o (False, mensaje_error).
+    """
+    try:
+        db.connect()
+        with db.atomic():
+            # 1. Buscar el producto usando el código de barras actual
+            product = Product.get(Product.barcode == old_barcode)
+            
+            # 2. Actualizar Código de Barras (manejo de unicidad)
+            if new_barcode is not None and new_barcode.strip():
+                new_barcode = new_barcode.strip()
+                if new_barcode != old_barcode:
+                    # Verificar si el nuevo código ya existe
+                    if Product.select().where(Product.barcode == new_barcode).exists():
+                        raise IntegrityError(f"Error: El nuevo código de barras '{new_barcode}' ya está en uso.")
+                    product.barcode = new_barcode # Si es único, se actualiza
+            
+            # 3. Actualizar otros campos si fueron proporcionados
+            if name is not None and name.strip():
+                product.name = name.strip()
+            
+            # Si se proporciona un nombre de categoría, asegúrate de que exista o créala
+            if category_name is not None and category_name.strip():
+                category, _ = Category.get_or_create(name=category_name.strip())
+                product.category = category
+            
+            if unit is not None and unit.strip():
+                product.unit = unit.strip()
+            
+            if location is not None and location.strip():
+                product.location = location.strip()
+            
+            # Manejo de precios (se asume que se envían como float/Decimal desde el CLI)
+            if purchase_price is not None:
+                product.purchase_price = Decimal(purchase_price)
+            
+            if sale_price is not None:
+                product.sale_price = Decimal(sale_price)
+                
+            # Manejo de fecha de vencimiento
+            if expiration_date_str is not None:
+                if expiration_date_str.strip():
+                    # Intenta parsear la fecha (YYYY-MM-DD)
+                    product.expiration_date = datetime.datetime.strptime(expiration_date_str.strip(), '%Y-%m-%d').date()
+                else:
+                    product.expiration_date = None # Permite quitar la fecha
+            
+            product.save()
+            
+        return True, f"Producto '{product.name}' (Código {product.barcode}) actualizado exitosamente."
+        
+    except Product.DoesNotExist:
+        return False, f"Error: Producto con código {old_barcode} no encontrado."
+    except IntegrityError as ie:
+        return False, str(ie) 
+    except ValueError:
+        return False, "Error de valor: Los precios o la fecha (formato YYYY-MM-DD) son inválidos."
+    except Exception as e:
+        return False, f"Error al actualizar producto: {e}"
+    finally:
+        if not db.is_closed():
+            db.close()
+
+def apply_expiring_product_offer(days_limit=10):
+    """
+    Aplica una oferta a productos que expiran dentro del límite de días especificado.
+    El precio de venta se reduce al precio de compra.
+    Retorna (True, mensaje) o (False, mensaje).
+    """
+    try:
+        db.connect()
+        date_limit = datetime.date.today() + datetime.timedelta(days=days_limit)
+        
+        # 1. Encontrar productos que expiran en el límite de días
+        products_to_update = Product.select().where(
+            (Product.expiration_date.is_null(False)) &
+            (Product.expiration_date <= date_limit) &
+            (Product.expiration_date >= datetime.date.today()) &
+            # Opcional: Solo si el precio de venta es actualmente mayor al precio de compra
+            (Product.sale_price > Product.purchase_price) 
+        )
+        
+        count = 0
+        updated_products = []
+
+        with db.atomic():
+            for product in products_to_update:
+                # 2. Aplicar la oferta (Precio de Venta = Precio de Compra)
+                # No se actualiza si ya tiene el precio de compra o menos
+                if product.sale_price > product.purchase_price:
+                    product.sale_price = product.purchase_price
+                    product.save()
+                    updated_products.append(product.name)
+                    count += 1
+        
+        if count > 0:
+            return True, f"Éxito: Se aplicó la oferta a {count} productos (P.Venta = P.Compra). Productos afectados: {', '.join(updated_products)}"
+        else:
+            return True, f"Ningún producto encontrado que expire en los próximos {days_limit} días o que necesitara una actualización de precio."
+            
+    except Exception as e:
+        return False, f"Error al aplicar la oferta: {e}"
     finally:
         if not db.is_closed():
             db.close()

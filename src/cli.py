@@ -16,7 +16,10 @@ from backend.services import (
     list_available_products,
     list_out_of_stock_products,
     list_categories,
-    list_products_by_category
+    list_products_by_category,
+    toggle_product_status,
+    update_product_details,
+    apply_expiring_product_offer
 )
 import datetime
 import pandas as pd
@@ -30,15 +33,19 @@ def show_menu():
     print("1. Agregar Nuevo Producto y Stock Inicial")
     print("2. Registrar Entrada de Stock (Compra)")
     print("3. Registrar Venta")
-    print("4. Listar Inventario Completo")
-    print("5. Listar Productos por Categoría")
-    print("6. Listar Productos con Stock Disponible")
-    print("7. Listar Productos sin Stock Disponible")
-    print("8. Buscar Producto por Nombre/Código")
-    print("9. Filtrar Productos Próximos a Vencer")
-    print("10. Listar Historial de Ventas")
-    print("11. Resumen de Ventas por Fecha")
-    print("12. Salir")
+    print("4. Listar Inventario de Productos activos")
+    print("5. Listar Inventario de Productos inactivos")
+    print("6. Listar Productos por Categoría")
+    print("7. Listar Productos con Stock Disponible")
+    print("8. Listar Productos sin Stock Disponible")
+    print("9. Buscar Producto por Nombre/Código")
+    print("10. Modificar Detalles del Producto")
+    print("11. Filtrar Productos Próximos a Vencer (10 días por defecto)")
+    print("12. Activar/Desactivar Producto")
+    print("13. Listar Historial de Ventas")
+    print("14. Resumen de Ventas por Fecha")
+    print("15. **APLICAR OFERTA** (Vencimiento < 10 días)")
+    print("16. Salir")
     return input("Selecciona una opción: ")
 
 def handle_add_product():
@@ -114,21 +121,8 @@ def handle_record_sale():
     
     print(f"\nResultado de la Venta: {'Éxito' if success else 'Error'} - {message}")
 
-def handle_list_inventory():
-    """Lista todo el inventario de productos."""
-    print("\n--- Listado de Inventario Completo ---")
-    data = list_products_inventory()
-    
-    if data:
-        # Usa pandas para una tabla legible en consola
-        df = pd.DataFrame(data)
-        # Selecciona solo las columnas más relevantes para la consola
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'sale_price', 'expiration_date']].to_markdown(index=False))
-    else:
-        print("El inventario está vacío.")
-
 def handle_search_product():
-    """Busca productos por nombre o código de barras."""
+    """Busca productos por nombre o c4ódigo de barras."""
     print("\n--- Búsqueda de Productos ---")
     query = input("Ingresa Nombre o Código de Barras a buscar: ")
     data = find_product_by_name_or_barcode(query)
@@ -136,7 +130,7 @@ def handle_search_product():
     if data:
         print(f"\nSe encontraron {len(data)} resultados:")
         df = pd.DataFrame(data)
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'sale_price']].to_markdown(index=False))
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print("No se encontraron productos que coincidan con la búsqueda.")
 
@@ -154,7 +148,7 @@ def handle_expiring_products():
     if data:
         print(f"\n{len(data)} productos vencen en los próximos {days} días:")
         df = pd.DataFrame(data)
-        print(df[['name', 'expiration_date', 'quantity', 'location']].to_markdown(index=False))
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print(f"No hay productos que venzan en los próximos {days} días.")
 
@@ -176,7 +170,7 @@ def handle_list_available_products():
 
     if data:
         df = pd.DataFrame(data)
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'sale_price', 'expiration_date']].to_markdown(index=False))
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print("No hay productos con stock disponible.")
 
@@ -187,7 +181,7 @@ def handle_list_out_of_stock_products():
 
     if data:
         df = pd.DataFrame(data)
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'sale_price', 'expiration_date']].to_markdown(index=False))
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print("No hay productos sin stock.")
 
@@ -236,39 +230,208 @@ def handle_list_categories_and_products():
     if data:
         df = pd.DataFrame(data)
         # Muestra columnas útiles
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'sale_price', 'profit', 'expiration_date', 'location']].to_markdown(index=False))
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print(f"No se encontraron productos para la categoría '{category_name}'.")
 
+def handle_toggle_status():
+    """Pide el código de barras y el nuevo estado del producto."""
+    print("\n--- Activar/Desactivar Producto ---")
+    try:
+        barcode = input("Código de Barras del Producto a modificar: ")
+        
+        # Opcional: Preguntar el estado específico (A = Activar, D = Desactivar, Enter = Invertir)
+        status_input = input("Estado (A = Activar, D = Desactivar, o Enter para invertir): ").upper()
+        
+        new_status = None
+        if status_input == 'A':
+            new_status = True
+        elif status_input == 'D':
+            new_status = False
+
+        success, message = toggle_product_status(barcode, new_status)
+        
+        print(f"\nResultado: {'Éxito' if success else 'Error'} - {message}")
+        
+    except Exception as e:
+        print(f"\nError inesperado: {e}")
+
+# src/cli.py
+
+def show_update_menu():
+    """Muestra el menú de opciones para actualizar un solo campo."""
+    print("\n--- Campo a Actualizar ---")
+    print("1. Nombre")
+    print("2. Código de Barras")
+    print("3. Nombre de Categoría")
+    print("4. Unidad de Medida")
+    print("5. Precio de Compra")
+    print("6. Precio de Venta")
+    print("7. Fecha de Expiración (YYYY-MM-DD, o 'vacío' para eliminar)")
+    print("8. Ubicación")
+    print("9. Ver Detalles y Salir")
+    return input("Selecciona una opción: ")
+
+
+def handle_update_product():
+    """Permite al usuario actualizar un solo campo de un producto a la vez mediante menú."""
+    print("\n--- Modificar Detalles de Producto ---")
+    
+    # El usuario debe especificar qué producto quiere modificar
+    old_barcode = input("Ingresa el Código de Barras del producto a modificar: ")
+    
+    # 1. Bucle de actualización
+    while True:
+        choice = show_update_menu()
+        new_value = None
+        
+        if choice == '9':
+            # Opción 9: Ver detalles y salir
+            print("\n--- Información Actual del Producto ---")
+            data = find_product_by_name_or_barcode(old_barcode)
+            
+            if data:
+                # Usar la primera coincidencia (debería ser única por barcode)
+                df = pd.DataFrame(data)
+                print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 
+                          'purchase_price', 'sale_price', 'profit', 'date_added', 
+                          'expiration_date', 'location', 'active']].to_markdown(index=False))
+            else:
+                print(f"Producto con código {old_barcode} no encontrado.")
+            break # Salir del bucle
+            
+        elif choice == '1': # Nombre
+            new_value = input("Ingresa el NUEVO Nombre: ")
+            success, message = update_product_details(old_barcode, name=new_value)
+            
+        elif choice == '2': # Código de Barras
+            new_barcode = input("Ingresa el NUEVO Código de Barras: ")
+            success, message = update_product_details(old_barcode, new_barcode=new_barcode)
+            if success:
+                # Si el código de barras se actualizó, usamos el nuevo para futuras búsquedas
+                old_barcode = new_barcode
+            
+        elif choice == '3': # Nombre de Categoría
+            new_value = input("Ingresa el NUEVO Nombre de Categoría: ")
+            success, message = update_product_details(old_barcode, category_name=new_value)
+            
+        elif choice == '4': # Unidad de Medida
+            new_value = input("Ingresa la NUEVA Unidad de Medida: ")
+            success, message = update_product_details(old_barcode, unit=new_value)
+            
+        elif choice == '5': # Precio de Compra
+            try:
+                price_str = input("Ingresa el NUEVO Precio de Compra: ")
+                price = float(price_str) if price_str.strip() else None
+                success, message = update_product_details(old_barcode, purchase_price=price)
+            except ValueError:
+                success, message = False, "Error: El precio de compra debe ser un número."
+                
+        elif choice == '6': # Precio de Venta
+            try:
+                price_str = input("Ingresa el NUEVO Precio de Venta: ")
+                price = float(price_str) if price_str.strip() else None
+                success, message = update_product_details(old_barcode, sale_price=price)
+            except ValueError:
+                success, message = False, "Error: El precio de venta debe ser un número."
+                
+        elif choice == '7': # Fecha de Expiración
+            new_date = input("Ingresa la NUEVA Fecha de Vencimiento (YYYY-MM-DD, o vacío para eliminar): ")
+            success, message = update_product_details(old_barcode, expiration_date_str=new_date)
+            
+        elif choice == '8': # Ubicación
+            new_value = input("Ingresa la NUEVA Ubicación: ")
+            success, message = update_product_details(old_barcode, location=new_value)
+            
+        else:
+            print("Opción no válida. Inténtalo de nuevo.")
+            continue
+
+        # Muestra el resultado de la operación (excepto en la opción 9)
+        if choice != '9':
+            print(f"\nResultado de la Actualización: {'Éxito' if success else 'Error'} - {message}")
+
+def handle_apply_offer():
+    """Ejecuta el proceso de aplicar ofertas automáticas."""
+    print("\n--- Aplicar Oferta por Vencimiento (< 10 días) ---")
+    
+    # Opción para permitir al usuario cambiar el límite de días (opcional)
+    try:
+        days_str = input("Límite de días para la oferta (Dejar vacío para usar 10 días por defecto): ")
+        days = int(days_str) if days_str.strip() else 10
+    except ValueError:
+        print("\nError: Ingresa un número válido de días. Usando 10 por defecto.")
+        days = 10
+    
+    success, message = apply_expiring_product_offer(days)
+    print(message)
+
+    # Mostrar los productos que acaban de entrar en oferta (opcional)
+    if success:
+        print("\n--- Productos en Oferta (Precio Venta = Precio Compra) ---")
+        handle_expiring_products() # Reutilizamos la función de listado
+
+def handle_list_inventory(option):
+    if option == 1:
+        print("\n--- Listado de Inventario de productos activos ---")
+    elif option == 2:
+        print("\n--- Listado de Inventario de productos inactivos ---")
+    elif option == 3:
+        d = 4
+    
+    data = list_products_inventory(option)
+    
+    if data:
+        # Usa pandas para una tabla legible en consola
+        df = pd.DataFrame(data)
+        # Selecciona solo las columnas más relevantes para la consola
+        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
+    else:
+        print("El inventario está vacío.")
 
 def main():
-    """Función principal del CLI."""
+
     while True:
         choice = show_menu()
-        
+        """Argumentos para la función handle_list_inventory():
+           1: Productos activos
+           2: Productos inactivos"""
         if choice == '1':
             handle_add_product()
         elif choice == '2':
+            handle_list_inventory(1)
             handle_record_purchase()
         elif choice == '3':
+            handle_list_inventory(1)
             handle_record_sale()
         elif choice == '4':
-            handle_list_inventory()
+            handle_list_inventory(1)
         elif choice == '5':
-            handle_list_categories_and_products()
+            handle_list_inventory(2)
         elif choice == '6':
-            handle_list_available_products()
+            handle_list_categories_and_products()
         elif choice == '7':
-            handle_list_out_of_stock_products()
+            handle_list_available_products()
         elif choice == '8':
-            handle_search_product()
+            handle_list_out_of_stock_products()
         elif choice == '9':
-            handle_expiring_products()
+            handle_search_product()
         elif choice == '10':
-            handle_list_sales_history()
+            handle_list_inventory(1)
+            handle_update_product()
         elif choice == '11':
-            handle_sales_summary_by_date()
+            handle_expiring_products()
         elif choice == '12':
+            handle_list_inventory(1)
+            handle_list_inventory(2)
+            handle_toggle_status()
+        elif choice == '13':
+            handle_list_sales_history()
+        elif choice == '14':
+            handle_sales_summary_by_date()
+        elif choice == '15':
+            handle_apply_offer()
+        elif choice == '16':
             print("Saliendo del programa. ¡Hasta pronto!")
             break
         else:
