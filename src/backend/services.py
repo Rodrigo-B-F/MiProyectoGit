@@ -1,4 +1,4 @@
-from peewee import IntegrityError, JOIN, fn
+from peewee import IntegrityError, JOIN, fn, DoesNotExist
 import datetime
 from decimal import Decimal
 
@@ -210,9 +210,10 @@ def list_products_inventory(option):
 
 
 
-
-def find_product_by_name_or_barcode(search):
-    """Busca productos por nombre o código de barras."""
+# USE ESTA FUNCIÓN PARA EL cli.py
+"""def find_product_by_name_or_barcode(search):
+    # Busca productos por nombre o código de barras.
+    
     try:
         db.connect()
         query = (Product
@@ -252,8 +253,94 @@ def find_product_by_name_or_barcode(search):
         return []
     finally:
         if not db.is_closed():
-            db.close()
+            db.close()"""
 
+"""def find_product_by_name_or_barcode(query):
+    #Busca un producto por nombre o código de barras.
+    #Retorna el ID, nombre y código de barras del producto encontrado, o None.
+    from peewee import DoesNotExist
+    try:
+        db.connect()
+        product = Product.get(
+            (Product.name.contains(query)) | 
+            (Product.barcode == query)
+        )
+        # Retornamos datos esenciales para la TUI
+        return {
+            "id": product.id,
+            "name": product.name, 
+            "barcode": product.barcode,
+            "category_name": product.category.name if product.category else 'N/A',
+            "unit": product.unit,
+            # Añadir más campos si se van a mostrar en la TUI de selección
+        }
+    except DoesNotExist:
+        return None
+    except Exception as e:
+        # print(f"Error en la búsqueda: {e}")
+        return None
+    finally:
+        if not db.is_closed():
+            db.close()"""
+
+# CAMBIADO PARA EL TUI
+def find_product_by_name_or_barcode(query):
+    """
+    Busca un producto por nombre o código de barras.
+    SIEMPRE retorna una lista de diccionarios.
+    Esto evita errores en SearchScreen y ModifyScreen.
+    """
+    try:
+        db.connect()
+
+        # JOIN correcto con Inventory
+        product_query = (
+            Product
+            .select(Product, Inventory)
+            .join(Inventory, JOIN.LEFT_OUTER)
+            .where(
+                (Product.name.contains(query)) |
+                (Product.barcode == query)
+            )
+        )
+
+        results = []
+
+        for prod in product_query:
+            # Obtener inventario real
+            inv = Inventory.get_or_none(Inventory.product == prod)
+            quantity = inv.quantity if inv else 0
+
+            profit = prod.sale_price - prod.purchase_price
+
+            # Armar diccionario del producto
+            results.append({
+                "id": prod.id,
+                "name": prod.name,
+                "barcode": prod.barcode,
+                "category_name": prod.category.name if prod.category else "N/A",
+                "unit": prod.unit,
+                "quantity": quantity,
+                "purchase_price": prod.purchase_price,
+                "sale_price": prod.sale_price,
+                "profit": profit,
+                "date_added": prod.date_added.strftime('%Y-%m-%d'),
+                "expiration_date": (
+                    prod.expiration_date.strftime('%Y-%m-%d')
+                    if prod.expiration_date else "N/A"
+                ),
+                "location": prod.location,
+                "active": "Activo" if prod.active else "Inactivo",
+            })
+
+        return results
+
+    except Exception:
+        return []  # SAFE para todas las pantallas
+
+    finally:
+        if not db.is_closed():
+            db.close()
 
 def filter_products_by_category(category_name):
     """Filtra el inventario por categoría."""
@@ -474,7 +561,7 @@ def list_categories():
             db.close()
 
 
-def list_products_by_category(category_name):
+def list_products_by_category(category_id):
     """
     Lista productos que pertenecen a categorías cuyo nombre contiene `category_name`
     (búsqueda insensible a mayúsculas).
@@ -488,7 +575,7 @@ def list_products_by_category(category_name):
                  .join(Inventory, JOIN.LEFT_OUTER)
                  .switch(Product)
                  .join(Category, JOIN.LEFT_OUTER)
-                 .where(fn.LOWER(Category.name).contains(category_name.lower()))
+                 .where(Category.id == category_id)
                  .order_by(Product.name))
 
         data = []
@@ -522,16 +609,15 @@ def list_products_by_category(category_name):
         if not db.is_closed():
             db.close()
 
-def update_product_details(old_barcode, name=None, new_barcode=None, category_name=None, unit=None, 
+#USE ESTA FUNCIÓN PARA EL CLI
+"""def update_product_details(old_barcode, name=None, new_barcode=None, category_name=None, unit=None, 
                            location=None, purchase_price=None, sale_price=None, 
                            expiration_date_str=None):
-    """
     Modifica los detalles de un producto existente.
     Usa old_barcode para encontrar el producto. Solo actualiza los campos
     que no son None o cadenas vacías.
     
     Retorna (True, mensaje_exito) o (False, mensaje_error).
-    """
     try:
         db.connect()
         with db.atomic():
@@ -591,8 +677,74 @@ def update_product_details(old_barcode, name=None, new_barcode=None, category_na
         return False, f"Error al actualizar producto: {e}"
     finally:
         if not db.is_closed():
-            db.close()
+            db.close()"""
 
+#CAMBIADO PARA EL TUI
+def update_product_details(product_id, name, new_barcode, category_name, unit, location, 
+                           purchase_price, sale_price, expiration_date_str, 
+                           date_added_str, active_status=None): # <-- Parámetro añadido
+    """
+    Actualiza los detalles de un producto por su ID.
+    """
+    try:
+        db.connect()
+        with db.atomic():
+            # 1. Buscar el producto por ID
+            product = Product.get_by_id(product_id)
+            
+            # 2. Actualizar la categoría (usar o crear)
+            if category_name and product.category.name != category_name:
+                 category, _ = Category.get_or_create(name=category_name)
+                 product.category = category
+
+            # 3. Actualizar campos simples
+            if name: product.name = name
+            if new_barcode: product.barcode = new_barcode
+            if unit: product.unit = unit
+            
+            product.location = location if location else None
+            
+            # 4. Actualizar precios (Decimal)
+            if purchase_price is not None:
+                product.purchase_price = Decimal(purchase_price)
+            
+            if sale_price is not None:
+                product.sale_price = Decimal(sale_price)
+
+            # 5. Manejo del estado 'active'
+            if active_status is not None:
+                product.active = active_status == "True"
+
+            # 6. Manejo de fecha de vencimiento
+            if expiration_date_str is not None:
+                expiration_date_str = expiration_date_str.strip()
+                if expiration_date_str:
+                    product.expiration_date = datetime.datetime.strptime(expiration_date_str, '%Y-%m-%d').date()
+                else:
+                    product.expiration_date = None
+            
+            # --- LÓGICA AÑADIDA ---
+            # 7. Manejo de fecha de adquisición (Asumimos que ya está validada por la TUI)
+            if date_added_str:
+                product.date_added = datetime.datetime.strptime(date_added_str, '%Y-%m-%d').date()
+            # --- FIN LÓGICA AÑADIDA ---
+                    
+            product.save()
+            
+            return True, f"Producto '{product.name}' (Código {product.barcode}) actualizado exitosamente."
+            
+    except Product.DoesNotExist:
+        return False, f"Error: Producto con ID {product_id} no encontrado."
+    except IntegrityError:
+        return False, f"Error: El código de barras '{new_barcode}' ya existe en otro producto."
+    except ValueError:
+        return False, "Error de valor: Los precios o las fechas (formato YYYY-MM-DD) son inválidos."
+    except Exception as e:
+        return False, f"Error inesperado al actualizar el producto: {e}"
+    finally:
+        if not db.is_closed():
+            db.close()
+            
 def apply_expiring_product_offer(days_limit=10):
     """
     Aplica una oferta a productos que expiran dentro del límite de días especificado.
@@ -635,3 +787,47 @@ def apply_expiring_product_offer(days_limit=10):
     finally:
         if not db.is_closed():
             db.close()
+
+#AÑADIDOS PARA QUE FUNCIONE EL TUI
+
+def get_product_details_by_id(product_id):
+    """
+    Obtiene todos los detalles de un producto por su ID.
+    """
+    try:
+        db.connect()
+        
+        # Si tienes la propiedad 'profit' en models.py, puedes incluirla
+        product = Product.get_by_id(product_id)
+        
+        # Obtener inventario si existe
+        inv = Inventory.get_or_none(Inventory.product == product)
+
+        # Calcular el profit
+        profit = product.sale_price - product.purchase_price
+
+        return {
+            "id": product.id,
+            "name": product.name,
+            "barcode": product.barcode,
+            "category_name": product.category.name if product.category else 'N/A',
+            "unit": product.unit,
+            "location": product.location,
+            "purchase_price": product.purchase_price,
+            "sale_price": product.sale_price,
+            "profit": profit,
+            "quantity": inv.quantity if inv else 0,
+            "purchase_date": product.date_added,
+            "expiration_date": product.expiration_date,
+            "active": product.active
+        }
+    except DoesNotExist:
+        return None
+    except Exception as e:
+        # print(f"Error al obtener detalles por ID: {e}")
+        return None
+    finally:
+        if not db.is_closed():
+            db.close()
+
+    

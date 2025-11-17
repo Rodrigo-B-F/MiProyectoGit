@@ -23,7 +23,6 @@ class Product(BaseModel):
     name = CharField()
     barcode = CharField(unique=True, index=True)   # Código de barras único
     category = ForeignKeyField(Category, backref='products', null=True)
-    image_url = TextField(null=True)               # opcional, si se quiere guardar ruta/URL de imagen
     unit = CharField()                             # Ej: 'kg', 'litro', 'unidad'
     location = CharField(null=True)                # Ej: 'Pasillo A - Estante 3'
     purchase_price = DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))

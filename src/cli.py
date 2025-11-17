@@ -159,7 +159,11 @@ def handle_list_sales_history():
     
     if data:
         df = pd.DataFrame(data)
-        print(df[['sale_id', 'timestamp', 'product', 'barcode', 'quantity', 'unit_price', 'subtotal', 'total_sale']].to_markdown(index=False))
+        # --- CORREGIDO ---
+        # Hemos quitado 'total_sale' de esta lista para evitar confusión.
+        # 'subtotal' es el valor correcto que deseas ver.
+        print(df[['sale_id', 'timestamp', 'product', 'barcode', 'quantity', 'unit_price', 'subtotal']].to_markdown(index=False))
+        # --- FIN DE LA CORRECCIÓN ---
     else:
         print("No hay ventas registradas.")
 
@@ -197,42 +201,60 @@ def handle_sales_summary_by_date():
         print("No hay ventas registradas para resumir.")
 
 def handle_list_categories_and_products():
-    """Muestra las categorías y permite listar productos por categoría."""
-    print("\n--- Categorías Disponibles ---")
-    cats = list_categories()
-    if not cats:
-        print("No hay categorías registradas.")
+    """Maneja la lógica para listar categorías y luego productos de una categoría seleccionada (usando ID)."""
+    print("\n--- Listado de Productos por Categoría ---")
+    
+    # 1. Listar categorías para que el usuario pueda elegir
+    categories = list_categories()
+    if not categories:
+        print("No se encontraron categorías. Agregue productos para crear categorías.")
         return
 
-    # Mostrar listado numerado
-    for i, c in enumerate(cats, start=1):
-        desc = f" - {c['description']}" if c['description'] else ""
-        print(f"{i}. {c['name']}{desc}")
-
-    # Pedir selección
-    sel = input("\nIngresa el número de categoría o escribe el nombre (ENTER para cancelar): ").strip()
-    if sel == "":
-        print("Operación cancelada.")
-        return
-
-    # Determinar nombre de categoría
-    if sel.isdigit():
-        idx = int(sel) - 1
-        if idx < 0 or idx >= len(cats):
-            print("Selección inválida.")
+    print("\nCategorías disponibles:")
+    # Usamos un diccionario para mapear el número de opción al ID de la categoría
+    category_map = {}
+    for i, cat in enumerate(categories):
+        # Mostramos el número de opción y el nombre
+        print(f"[{i+1}]. {cat['name']}") 
+        # Mapeamos el número de opción al ID de la categoría (que es el valor real que usaremos)
+        category_map[str(i+1)] = cat['id']
+    
+    # 2. Pedir al usuario que seleccione una categoría
+    while True:
+        choice = input("Ingrese el número de la categoría que desea ver o 'r' para regresar: ").lower()
+        if choice == 'r':
             return
-        category_name = cats[idx]['name']
-    else:
-        category_name = sel
+            
+        if choice in category_map:
+            category_id = category_map[choice]
+            # Obtenemos el nombre para el feedback de la lista original
+            category_name = categories[int(choice)-1]['name'] 
+            break
+        else:
+            print("Opción no válida. Intente de nuevo.")
+            
+    # 3. Llamar al servicio y formatear (CORRECCIÓN CLAVE)
+    print(f"\nBuscando productos en la categoría: {category_name}...")
+    try:
+        # Usamos la función de servicio que ahora espera el ID
+        products_data = list_products_by_category(category_id) 
+        
+        if products_data:
+            print(f"\n--- Productos en la Categoría: {category_name} ({len(products_data)} encontrados) ---")
+            
+            # --- CORRECCIÓN: Usar pandas para formato de tabla ---
+            df = pd.DataFrame(products_data)
+            # Rellenar valores nulos (como None en expiration_date) con una cadena vacía
+            df = df.fillna('') 
+            # Imprimir como tabla sin el índice de pandas
+            print(df.to_string(index=False))
+            # ----------------------------------------------------
+        else:
+            print(f"No se encontraron productos para la categoría '{category_name}'.")
 
-    # Obtener productos de la categoría
-    data = list_products_by_category(category_name)
-    if data:
-        df = pd.DataFrame(data)
-        # Muestra columnas útiles
-        print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
-    else:
-        print(f"No se encontraron productos para la categoría '{category_name}'.")
+    except Exception as e:
+        print(f"\nERROR: Ocurrió un error al listar los productos: {e}")
+
 
 def handle_toggle_status():
     """Pide el código de barras y el nuevo estado del producto."""

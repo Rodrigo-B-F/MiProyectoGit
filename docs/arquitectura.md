@@ -11,15 +11,14 @@ MiProyectoGit
 │   ├── backend              # Lógica de Negocio
 │   │   ├── __pycache__
 │   │   │   └── ... (.pyc files)
-│   │   ├── data_loader.py
 │   │   ├── models.py
 │   │   └── services.py
 │   ├── data                 # Archivos de datos estáticos y base de datos
 │   │   └── tienda.db        # ¡Ubicación confirmada!
 │   ├── utils                # Funciones de utilidad.
-│   ├── app.py               # Punto de entrada de la aplicación/API.
 │   ├── cli.py               # Herramientas de línea de comandos.
-│   └── init_db.py           # Lógica de inicialización de la DB.
+│   ├── init_db.py           # Lógica de inicialización de la DB.
+│   └── tui.py               # Interfaz en la terminal. 
 ├── tests                    # Carpeta para pruebas.
 ├── Github.txt
 ├── README.md
