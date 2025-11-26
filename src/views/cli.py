@@ -1,31 +1,49 @@
-# Importación de la base de datos
-from init_db import init_db 
+# src/views/cli.py
 
-# Importación de la lógica de negocio
-from backend.models import init_db, db
-from backend.services import (
-    add_product,
-    record_purchase,
-    record_sale,
-    list_products_inventory,
-    find_product_by_name_or_barcode,
-    filter_products_by_category,
-    list_expiring_products,
-    list_sales_history,
-    sales_summary_by_date,
-    list_available_products,
-    list_out_of_stock_products,
-    list_categories,
-    list_products_by_category,
-    toggle_product_status,
-    update_product_details,
-    apply_expiring_product_offer
-)
+import sys
+import os
+
+# --- Configuración de ruta para importaciones ---
+# Permite ejecutar este script directamente desde src/views/ sin errores de importación.
+if __name__ == "__main__":
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    src_path = os.path.abspath(os.path.join(current_dir, '..', '..', 'src'))
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+
 import datetime
 import pandas as pd
 
-# Inicializamos la BD
+# --- Importaciones de Controladores y Modelos ---
+from models import init_db
+from controllers.product_controller import (
+    add_product,
+    toggle_product_status,
+    update_product_details,
+    find_product_by_name_or_barcode,
+    apply_expiring_product_offer
+)
+from controllers.inventory_controller import (
+    record_purchase,
+    list_products_inventory,
+    list_available_products,
+    list_out_of_stock_products,
+    list_expiring_products,
+    list_categories,
+    list_products_by_category,
+    update_category,
+)
+from controllers.sale_controller import (
+    record_sale,
+    list_sales_history,
+    sales_summary_by_date
+)
+
+# Inicialización de la Base de Datos
+print("Inicializando base de datos...")
 init_db()
+print("Base de datos lista.")
+
 
 def show_menu():
     """Muestra el menú y pide una opción."""
@@ -45,8 +63,10 @@ def show_menu():
     print("13. Listar Historial de Ventas")
     print("14. Resumen de Ventas por Fecha")
     print("15. **APLICAR OFERTA** (Vencimiento < 10 días)")
-    print("16. Salir")
+    print("16. Modificar Categoría")
+    print("17. Salir")
     return input("Selecciona una opción: ")
+
 
 def handle_add_product():
     """Pide los datos y llama a la función para agregar un producto."""
@@ -78,6 +98,7 @@ def handle_add_product():
     except Exception as e:
         print(f"\nError inesperado: {e}")
 
+
 def handle_record_purchase():
     """Pide los datos y llama a la función para registrar una compra (entrada de stock)."""
     print("\n--- Registrar Entrada de Stock (Compra) ---")
@@ -92,6 +113,7 @@ def handle_record_purchase():
         
     except ValueError:
         print("\nError: La cantidad y el precio deben ser números válidos.")
+
 
 def handle_record_sale():
     """Pide los datos de los productos a vender y registra la venta."""
@@ -121,8 +143,9 @@ def handle_record_sale():
     
     print(f"\nResultado de la Venta: {'Éxito' if success else 'Error'} - {message}")
 
+
 def handle_search_product():
-    """Busca productos por nombre o c4ódigo de barras."""
+    """Busca productos por nombre o código de barras."""
     print("\n--- Búsqueda de Productos ---")
     query = input("Ingresa Nombre o Código de Barras a buscar: ")
     data = find_product_by_name_or_barcode(query)
@@ -133,6 +156,7 @@ def handle_search_product():
         print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print("No se encontraron productos que coincidan con la búsqueda.")
+
 
 def handle_expiring_products():
     """Filtra productos próximos a vencer."""
@@ -152,6 +176,7 @@ def handle_expiring_products():
     else:
         print(f"No hay productos que venzan en los próximos {days} días.")
 
+
 def handle_list_sales_history():
     """Lista el historial de ventas."""
     print("\n--- Historial de Ventas ---")
@@ -159,13 +184,10 @@ def handle_list_sales_history():
     
     if data:
         df = pd.DataFrame(data)
-        # --- CORREGIDO ---
-        # Hemos quitado 'total_sale' de esta lista para evitar confusión.
-        # 'subtotal' es el valor correcto que deseas ver.
         print(df[['sale_id', 'timestamp', 'product', 'barcode', 'quantity', 'unit_price', 'subtotal']].to_markdown(index=False))
-        # --- FIN DE LA CORRECCIÓN ---
     else:
         print("No hay ventas registradas.")
+
 
 def handle_list_available_products():
     """Lista solo los productos con stock > 0."""
@@ -178,6 +200,7 @@ def handle_list_available_products():
     else:
         print("No hay productos con stock disponible.")
 
+
 def handle_list_out_of_stock_products():
     """Lista solo los productos sin stock (quantity = 0)."""
     print("\n--- Productos sin Stock Disponible ---")
@@ -188,6 +211,7 @@ def handle_list_out_of_stock_products():
         print(df[['name', 'barcode', 'category_name', 'quantity', 'unit', 'purchase_price', 'sale_price', 'profit', 'date_added', 'expiration_date', 'location', 'active']].to_markdown(index=False))
     else:
         print("No hay productos sin stock.")
+
 
 def handle_sales_summary_by_date():
     """Muestra el resumen de ventas agrupadas por fecha."""
@@ -200,6 +224,7 @@ def handle_sales_summary_by_date():
     else:
         print("No hay ventas registradas para resumir.")
 
+
 def handle_list_categories_and_products():
     """Maneja la lógica para listar categorías y luego productos de una categoría seleccionada (usando ID)."""
     print("\n--- Listado de Productos por Categoría ---")
@@ -211,12 +236,10 @@ def handle_list_categories_and_products():
         return
 
     print("\nCategorías disponibles:")
-    # Usamos un diccionario para mapear el número de opción al ID de la categoría
+    # Mapeamos el número de opción al ID de la categoría para facilitar la selección
     category_map = {}
     for i, cat in enumerate(categories):
-        # Mostramos el número de opción y el nombre
         print(f"[{i+1}]. {cat['name']}") 
-        # Mapeamos el número de opción al ID de la categoría (que es el valor real que usaremos)
         category_map[str(i+1)] = cat['id']
     
     # 2. Pedir al usuario que seleccione una categoría
@@ -233,7 +256,7 @@ def handle_list_categories_and_products():
         else:
             print("Opción no válida. Intente de nuevo.")
             
-    # 3. Llamar al servicio y formatear (CORRECCIÓN CLAVE)
+    # 3. Llamar al servicio y formatear
     print(f"\nBuscando productos en la categoría: {category_name}...")
     try:
         # Usamos la función de servicio que ahora espera el ID
@@ -242,13 +265,12 @@ def handle_list_categories_and_products():
         if products_data:
             print(f"\n--- Productos en la Categoría: {category_name} ({len(products_data)} encontrados) ---")
             
-            # --- CORRECCIÓN: Usar pandas para formato de tabla ---
+            # Usar pandas para formato de tabla
             df = pd.DataFrame(products_data)
             # Rellenar valores nulos (como None en expiration_date) con una cadena vacía
             df = df.fillna('') 
             # Imprimir como tabla sin el índice de pandas
             print(df.to_string(index=False))
-            # ----------------------------------------------------
         else:
             print(f"No se encontraron productos para la categoría '{category_name}'.")
 
@@ -262,7 +284,7 @@ def handle_toggle_status():
     try:
         barcode = input("Código de Barras del Producto a modificar: ")
         
-        # Opcional: Preguntar el estado específico (A = Activar, D = Desactivar, Enter = Invertir)
+        # Permite ingresar A/D o presionar Enter para invertir el estado actual
         status_input = input("Estado (A = Activar, D = Desactivar, o Enter para invertir): ").upper()
         
         new_status = None
@@ -278,7 +300,6 @@ def handle_toggle_status():
     except Exception as e:
         print(f"\nError inesperado: {e}")
 
-# src/cli.py
 
 def show_update_menu():
     """Muestra el menú de opciones para actualizar un solo campo."""
@@ -302,7 +323,7 @@ def handle_update_product():
     # El usuario debe especificar qué producto quiere modificar
     old_barcode = input("Ingresa el Código de Barras del producto a modificar: ")
     
-    # 1. Bucle de actualización
+    # Bucle para permitir múltiples modificaciones al mismo producto
     while True:
         choice = show_update_menu()
         new_value = None
@@ -373,6 +394,7 @@ def handle_update_product():
         if choice != '9':
             print(f"\nResultado de la Actualización: {'Éxito' if success else 'Error'} - {message}")
 
+
 def handle_apply_offer():
     """Ejecuta el proceso de aplicar ofertas automáticas."""
     print("\n--- Aplicar Oferta por Vencimiento (< 10 días) ---")
@@ -393,13 +415,61 @@ def handle_apply_offer():
         print("\n--- Productos en Oferta (Precio Venta = Precio Compra) ---")
         handle_expiring_products() # Reutilizamos la función de listado
 
+
+def handle_update_category():
+    """Permite modificar el nombre y/o descripción de una categoría existente."""
+    print("\n--- Modificar Categoría ---")
+    
+    # 1. Listar categorías disponibles
+    categories = list_categories()
+    if not categories:
+        print("No se encontraron categorías. Agregue productos para crear categorías.")
+        return
+    
+    print("\nCategorías disponibles:")
+    category_map = {}
+    for i, cat in enumerate(categories):
+        desc_preview = cat['description'][:50] if cat['description'] else "(Sin descripción)"
+        print(f"[{i+1}]. {cat['name']} - {desc_preview}")
+        category_map[str(i+1)] = cat['id']
+    
+    # 2. Pedir al usuario que seleccione una categoría
+    while True:
+        choice = input("\nIngrese el número de la categoría o 'r' para regresar: ").lower()
+        if choice == 'r':
+            return
+            
+        if choice in category_map:
+            category_id = category_map[choice]
+            category_name = categories[int(choice)-1]['name']
+            current_desc = categories[int(choice)-1]['description']
+            break
+        else:
+            print("Opción no válida. Intente de nuevo.")
+    
+    # 3. Mostrar información actual
+    print(f"\nCategoría seleccionada: {category_name}")
+    print(f"Descripción actual: {current_desc if current_desc else '(Sin descripción)'}")
+    
+    # 4. Pedir nuevos datos
+    print("\nDeje vacío si no desea modificar el campo.")
+    new_name = input(f"Nuevo Nombre (Actual: {category_name}): ")
+    new_description = input(f"Nueva Descripción (Actual: {current_desc if current_desc else 'Ninguna'}): ")
+    
+    if not new_name.strip() and not new_description.strip():
+        print("Operación cancelada. No se realizaron cambios.")
+        return
+    
+    # 5. Actualizar la categoría
+    success, message = update_category(category_id, name=new_name, description=new_description)
+    print(f"\nResultado: {'Éxito' if success else 'Error'} - {message}")
+
+
 def handle_list_inventory(option):
     if option == 1:
         print("\n--- Listado de Inventario de productos activos ---")
     elif option == 2:
         print("\n--- Listado de Inventario de productos inactivos ---")
-    elif option == 3:
-        d = 4
     
     data = list_products_inventory(option)
     
@@ -411,13 +481,15 @@ def handle_list_inventory(option):
     else:
         print("El inventario está vacío.")
 
-def main():
 
+def main():
+    """Argumentos para la función handle_list_inventory():
+       1: Productos activos
+       2: Productos inactivos"""
+    
     while True:
         choice = show_menu()
-        """Argumentos para la función handle_list_inventory():
-           1: Productos activos
-           2: Productos inactivos"""
+        
         if choice == '1':
             handle_add_product()
         elif choice == '2':
@@ -454,10 +526,13 @@ def main():
         elif choice == '15':
             handle_apply_offer()
         elif choice == '16':
+            handle_update_category()
+        elif choice == '17':
             print("Saliendo del programa. ¡Hasta pronto!")
             break
         else:
             print("Opción no válida. Inténtalo de nuevo.")
+
 
 if __name__ == "__main__":
     main()

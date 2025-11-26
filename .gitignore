@@ -11,13 +11,18 @@ __pycache__/
 
 # ---------------------------------------------
 # 3. Archivos de Bases de Datos
-# Ignora archivos de la base de datos que se regeneran
-# La BD está en src/data/
-src/data/*.db
-!src/data/README.md  # Permite subir cualquier documentación que puedas poner aquí
+# La base de datos ahora se puede subir al repositorio
+# (Comentado para permitir subir la base de datos)
+# src/data/*.db
 
 # ---------------------------------------------
 # 4. Archivos de Desarrollo y Configuración
 # Ignora cualquier archivo personal o que contenga secretos
 .env
 *.log
+
+# ---------------------------------------------
+# 5. Carpetas de Trabajo Local
+# Ignora carpetas de copias de seguridad y scripts de utilidad
+copias/
+scripts/
