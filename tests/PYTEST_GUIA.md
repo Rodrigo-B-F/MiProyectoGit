@@ -49,29 +49,34 @@ MiProyectoGit/
 │   ├── models/
 │   │   ├── product.py
 │   │   ├── category.py
-│   │   └── ...
+│   │   ├── inventory.py
+│   │   ├── sale.py
+│   │   └── batch.py
 │   ├── controllers/
-│   │   ├── inventory_controller.py
-│   │   ├── sales_controller.py
-│   │   └── ...
+│   │   ├── product/
+│   │   ├── inventory/
+│   │   ├── sale/
+│   │   └── batch/
 │   └── views/
-│       ├── tui.py
-│       └── cli.py
+│       ├── tui/
+│       └── cli/
 ├── tests/
 │   ├── __init__.py
 │   ├── conftest.py              # Fixtures compartidas
+│   ├── PYTEST_GUIA.md           # Esta guía
 │   ├── test_models/
 │   │   ├── __init__.py
 │   │   ├── test_product.py
 │   │   ├── test_category.py
+│   │   ├── test_inventory.py
+│   │   ├── test_sale.py
 │   │   └── test_batch.py
-│   ├── test_controllers/
-│   │   ├── __init__.py
-│   │   ├── test_inventory_controller.py
-│   │   └── test_sales_controller.py
-│   └── test_views/
+│   └── test_controllers/
 │       ├── __init__.py
-│       └── test_cli.py
+│       ├── test_product_controller.py
+│       ├── test_inventory_controller.py
+│       ├── test_sale_controller.py
+│       └── test_batch_controller.py
 └── pytest.ini                   # Configuración de pytest
 ```
 

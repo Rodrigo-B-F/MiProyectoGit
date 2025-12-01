@@ -4,9 +4,9 @@
 
 Este proyecto sigue el patrón de arquitectura **MVC (Modelo-Vista-Controlador)** para una clara separación de responsabilidades:
 
-- **Modelos** (`models/`): Definen la estructura de datos y gestionan el acceso a la base de datos
-- **Controladores** (`controllers/`): Contienen la lógica de negocio y coordinan entre modelos y vistas
-- **Vistas** (`views/`): Manejan la presentación e interacción con el usuario (TUI y CLI)
+- **Modelos** (`src/models/`): Definen la estructura de datos y gestionan el acceso a la base de datos
+- **Controladores** (`src/controllers/`): Contienen la lógica de negocio y coordinan entre modelos y vistas
+- **Vistas** (`src/views/`): Manejan la presentación e interacción con el usuario (TUI y CLI)
 
 ## Estructura del Proyecto
 
@@ -14,12 +14,6 @@ Este proyecto sigue el patrón de arquitectura **MVC (Modelo-Vista-Controlador)*
 MiProyectoGit/
 ├── docs/                        # 📚 Documentación
 │   ├── arquitectura.md          # Este archivo - Descripción de la arquitectura
-│   ├── patron-mvc.md            # Guía detallada del patrón MVC aplicado
-│   ├── implementation_plan.md  # Plan de refactorización MVC
-│   └── walkthrough.md           # Documentación de cambios realizados
-│
-├── mi_entorno/                  # 🐍 Entorno virtual (ignorado por Git)
-│   └── ...
 │
 ├── src/                         # 💻 Código Fuente Principal
 │   ├── config.py                # ⚙️ Configuración centralizada (DB_PATH, constantes)
@@ -31,116 +25,110 @@ MiProyectoGit/
 │   │   ├── category.py          # Modelo: Category
 │   │   ├── product.py           # Modelo: Product (con property profit)
 │   │   ├── inventory.py         # Modelos: Inventory + StockMovement
-│   │   └── sale.py              # Modelos: Sale + SaleItem
+│   │   ├── sale.py              # Modelos: Sale + SaleItem
+│   │   └── batch.py             # Modelo: Batch (Lotes)
 │   │
 │   ├── controllers/             # 🎮 CONTROLADOR - Lógica de Negocio
 │   │   ├── __init__.py          # Exports de todas las funciones de negocio
-│   │   ├── product_controller.py       # Gestión de productos (7 funciones)
-│   │   ├── inventory_controller.py     # Gestión de inventario (6 funciones)
-│   │   └── sale_controller.py          # Gestión de ventas (3 funciones)
+│   │   ├── product/             # Subpaquete de gestión de productos
+│   │   │   ├── product_crud.py
+│   │   │   ├── product_search.py
+│   │   │   └── product_business.py
+│   │   ├── inventory/           # Subpaquete de gestión de inventario
+│   │   │   ├── stock_management.py
+│   │   │   ├── inventory_reporting.py
+│   │   │   └── category_management.py
+│   │   ├── sale/                # Subpaquete de gestión de ventas
+│   │   │   ├── sale_transaction.py
+│   │   │   └── sale_reporting.py
+│   │   └── batch/               # Subpaquete de gestión de lotes
+│   │       ├── batch_management.py
+│   │       └── batch_maintenance.py
 │   │
 │   ├── views/                   # 🎨 VISTA - Interfaces de Usuario
-│   │   ├── __init__.py
-│   │   ├── tui.py               # Interfaz TUI (Textual)
-│   │   ├── cli.py               # Interfaz CLI (línea de comandos)
+│   │   ├── cli/                 # Interfaz de Línea de Comandos (Modular)
+│   │   │   ├── actions/         # Acciones específicas (product, inventory, sale, category)
+│   │   │   └── menus.py         # Definición de menús
+│   │   ├── tui/                 # Interfaz Gráfica de Terminal (Modular)
+│   │   │   ├── screens/         # Pantallas individuales (AddProduct, Sale, History, etc.)
+│   │   │   ├── widgets/         # Componentes reutilizables
+│   │   │   └── app.py           # Clase principal de la aplicación TUI
 │   │   └── tui.css              # Estilos para la interfaz TUI
 │   │
-│   ├── data/                    # 💾 Base de Datos
-│   │   └── tienda.db            # Base de datos SQLite
+│   ├── utils/                   # � Funciones de utilidad
+│   │   ├── translations.py      # Centralización de textos y traducciones
+│   │   └── cli_utils.py         # Utilidades para CLI (tablas, inputs)
 │   │
-│   ├── utils/                   # 🔨 Funciones de utilidad
-│   │
-│   └── __pycache__/             # Cache de Python (ignorado por Git)
+│   └── data/                    # � Base de Datos
+│       └── tienda.db            # Base de datos SQLite
 │
-├── tests/                       # 🧪 Pruebas automatizadas
-│
-├── .gitignore                   # Configuración de Git
-├── Github.txt                   # Notas sobre Git
-├── README.md                    # Descripción del proyecto
-└── requirements.txt             # 📦 Dependencias del proyecto
+├── tests/                       # 🧪 Pruebas automatizadas (pytest)
+├── main_cli.py                  # Ejecutable para consola (Entry Point)
+├── main_tui.py                  # Ejecutable para TUI (Entry Point)
+├── requirements.txt             # 📦 Dependencias del proyecto
+└── README.md                    # Descripción del proyecto
 ```
 
 ## Componentes Principales
 
-### 🎨 Capa de Vista (`views/`)
+### 🎨 Capa de Vista (`src/views/`)
 
 **Responsabilidad**: Presentación e interacción con el usuario
 
-| Archivo | Descripción |
-|---------|-------------|
-| `tui.py` | Interfaz de usuario en terminal usando Textual. Incluye pantallas para gestión de productos, ventas, inventario |
-| `cli.py` | Interfaz de línea de comandos con menú interactivo para todas las funcionalidades |
-| `tui.css` | Estilos y diseño para la interfaz TUI |
+| Componente | Descripción |
+|------------|-------------|
+| `views/tui/` | Interfaz de usuario en terminal usando **Textual**. Estructurada en pantallas (`screens`) para cada funcionalidad (Agregar, Modificar, Vender, Historial). |
+| `views/cli/` | Interfaz de línea de comandos clásica. Modularizada en acciones (`actions`) para mantener el código organizado. |
+| `tui.css` | Hoja de estilos CSS para personalizar la apariencia de la TUI. |
 
 **Características**:
-- ✅ NO contiene lógica de negocio
-- ✅ Solo captura entrada y muestra datos
-- ✅ Llama a funciones de controladores
-- ✅ Validación básica de formato
+- ✅ NO contiene lógica de negocio compleja.
+- ✅ Usa `utils/translations.py` para textos centralizados.
+- ✅ Llama a funciones de controladores.
 
 ---
 
-### 🎮 Capa de Controlador (`controllers/`)
+### 🎮 Capa de Controlador (`src/controllers/`)
 
-**Responsabilidad**: Lógica de negocio y coordinación
+**Responsabilidad**: Lógica de negocio y coordinación. Se ha refactorizado en subpaquetes para mejor mantenibilidad.
 
-#### `product_controller.py`
-Gestión de productos del inventario:
-- `add_product()` - Agregar nuevo producto con stock inicial
-- `toggle_product_status()` - Activar/desactivar productos
-- `update_product_details()` - Modificar información de productos
-- `get_product_details_by_id()` - Obtener detalles por ID
-- `find_product_by_name_or_barcode()` - Búsqueda de productos
-- `list_products_by_category()` - Filtrar por categoría
-- `apply_expiring_product_offer()` - Aplicar ofertas automáticas
+#### `product/`
+- **CRUD**: Crear, leer, actualizar y eliminar productos.
+- **Búsqueda**: Búsqueda por nombre o código de barras.
+- **Negocio**: Lógica de precios y validaciones.
 
-#### `inventory_controller.py`
-Gestión de inventario y stocks:
-- `record_purchase()` - Registrar compra/entrada de stock
-- `list_products_inventory()` - Listar inventario (activos/inactivos)
-- `list_available_products()` - Productos con stock disponible
-- `list_out_of_stock_products()` - Productos sin stock
-- `list_expiring_products()` - Productos próximos a vencer
-- `list_categories()` - Listar todas las categorías
+#### `inventory/`
+- **Stock**: Entradas y salidas de stock.
+- **Reportes**: Listados de inventario, bajo stock, próximos a vencer.
+- **Categorías**: Gestión de categorías.
 
-#### `sale_controller.py`
-Gestión de ventas:
-- `record_sale()` - Registrar venta completa (múltiples items)
-- `list_sales_history()` - Historial de ventas
-- `sales_summary_by_date()` - Resumen de ventas por fecha
+#### `sale/`
+- **Transacción**: Registro de ventas completas con múltiples items y cálculo de totales.
+- **Reportes**: Historial de ventas y resúmenes por fecha.
+
+#### `batch/`
+- **Gestión**: Creación y asignación de lotes a productos.
+- **Mantenimiento**: Verificación de fechas de vencimiento.
 
 **Características**:
-- ✅ Valida reglas de negocio
-- ✅ Coordina operaciones entre modelos
-- ✅ NO conoce detalles de la vista
-- ✅ Retorna tuplas (success, message)
+- ✅ Valida reglas de negocio.
+- ✅ Coordina operaciones entre modelos.
+- ✅ Desacoplado de la vista (retorna estructuras de datos estándar).
 
 ---
 
-### 📊 Capa de Modelo (`models/`)
+### 📊 Capa de Modelo (`src/models/`)
 
-**Responsabilidad**: Estructura de datos y acceso a base de datos
+**Responsabilidad**: Estructura de datos y acceso a base de datos (ORM Peewee).
 
-| Archivo | Modelos/Funciones | Descripción |
-|---------|-------------------|-------------|
-| `database.py` | `db`, `BaseModel`, `init_db()` | Conexión SQLite y configuración Peewee |
-| `category.py` | `Category` | Categorías de productos (id, name, description) |
-| `product.py` | `Product` | Productos (id, name, barcode, prices, dates, etc.) |
-| `inventory.py` | `Inventory`, `StockMovement` | Stock actual y movimientos de entrada/salida |
-| `sale.py` | `Sale`, `SaleItem` | Ventas realizadas y sus items |
-
-**Relaciones**:
-- `Product` → `Category` (ForeignKey)
-- `Inventory` → `Product` (ForeignKey, unique)
-- `StockMovement` → `Product` (ForeignKey)
-- `SaleItem` → `Sale` (ForeignKey)
-- `SaleItem` → `Product` (ForeignKey)
-
-**Características**:
-- ✅ Define esquema de base de datos
-- ✅ Ejecuta consultas SQL (vía Peewee ORM)
-- ✅ NO contiene lógica de negocio compleja
-- ✅ NO conoce nada sobre vistas
+| Archivo | Modelos | Descripción |
+|---------|---------|-------------|
+| `database.py` | `db`, `BaseModel` | Configuración de conexión SQLite. |
+| `category.py` | `Category` | Categorías de productos. |
+| `product.py` | `Product` | Productos (con propiedades calculadas como `profit`). |
+| `inventory.py` | `Inventory`, `StockMovement` | Control de stock y registro de movimientos. |
+| `sale.py` | `Sale`, `SaleItem` | Registro de ventas y detalles. |
+| `batch.py` | `Batch` | Manejo de lotes y fechas de vencimiento. |
 
 ---
 
@@ -158,15 +146,6 @@ graph LR
     V -->|Muestra| U
 ```
 
-### Ejemplo: Agregar un producto
-
-1. **Usuario** ingresa datos en formulario TUI  
-2. **Vista** (`tui.py`) captura datos y llama `add_product()` del controlador
-3. **Controlador** (`product_controller.py`) valida reglas de negocio (ej: precio venta > precio compra)
-4. **Controlador** llama al modelo para crear categoría si no existe
-5. **Modelo** (`Product`, `Inventory`) inserta datos en BD usando Peewee ORM
-6. **Resultado** fluye de vuelta: Modelo → Controlador → Vista → Usuario
-
 ---
 
 ## Tecnologías Utilizadas
@@ -175,32 +154,10 @@ graph LR
 |------------|-----------|-----|
 | **ORM** | Peewee | Mapeo objeto-relacional para SQLite |
 | **Base de Datos** | SQLite | Almacenamiento de datos |
-| **Interfaz TUI** | Textual | Interfaz de terminal moderna |
-| **Interfaz CLI** | argparse + pandas | Línea de comandos con tablas |
+| **Interfaz TUI** | Textual | Interfaz de terminal moderna y reactiva |
+| **Interfaz CLI** | Python Standard Lib | Línea de comandos robusta |
+| **Testing** | Pytest | Pruebas unitarias y de integración |
 | **Lenguaje** | Python 3.13 | Lenguaje principal |
-
----
-
-## Convenciones de Código
-
-### Imports
-```python
-# En vistas (views/):
-from models import init_db, Product, Category
-from controllers import add_product, record_sale
-
-# En controladores (controllers/):
-from models import db, Product, Inventory, Category
-
-# En modelos (models/):
-from .database import BaseModel
-from config import DB_PATH
-```
-
-### Nombres de Archivos
-- Modelos: `nombre_singular.py` (ej: `product.py`, `category.py`)
-- Controladores: `nombre_controller.py` (ej: `product_controller.py`)
-- Vistas: `tipo.py` (ej: `tui.py`, `cli.py`)
 
 ---
 
@@ -208,20 +165,20 @@ from config import DB_PATH
 
 ### Inicializar Base de Datos
 ```bash
-cd src
-python init_db.py
+python src/init_db.py
 ```
 
 ### Interfaz TUI (Textual)
 ```bash
-cd src
-python -m views.tui
+python main_tui.py
 ```
 
 ### Interfaz CLI (Línea de Comandos)
 ```bash
-cd src
-python -m views.cli
+python main_cli.py
 ```
 
----
+### Ejecutar Pruebas
+```bash
+pytest -v
+```
