@@ -8,7 +8,7 @@ import datetime
 from decimal import Decimal
 from models import db, Category, Product, Inventory, StockMovement
 
-def add_product(name, barcode, category_name, unit, location, purchase_price, sale_price, initial_quantity, expiration_date=None):
+def add_product(name, barcode, category_name, location, sale_price, initial_quantity):
     """
     Registra un nuevo producto y su inventario inicial.
     Retorna True si la operación fue exitosa, False en caso de error.
@@ -16,17 +16,19 @@ def add_product(name, barcode, category_name, unit, location, purchase_price, sa
     try:
         db.connect()
         with db.atomic():
+            # Verificar si ya existe un producto con el mismo nombre
+            existing_product = Product.select().where(Product.name == name).first()
+            if existing_product:
+                return False, f"Ya existe un producto con el nombre '{name}'"
+            
             category, _ = Category.get_or_create(name=category_name)
 
             product = Product.create(
                 name=name,
                 barcode=barcode,
                 category=category,
-                unit=unit,
                 location=location,
-                purchase_price=Decimal(purchase_price),
-                sale_price=Decimal(sale_price),
-                expiration_date=expiration_date
+                sale_price=Decimal(sale_price)
             )
 
             Inventory.create(
@@ -81,9 +83,8 @@ def toggle_product_status(barcode, new_status=None):
         if not db.is_closed():
             db.close()
 
-def update_product_details(product_id, name, new_barcode, category_name, unit, location, 
-                           purchase_price, sale_price, expiration_date_str, 
-                           date_added_str, active_status=None):
+def update_product_details(product_id, name, new_barcode, category_name, location, 
+                           sale_price, active_status=None):
     """
     Actualiza los detalles de un producto por su ID.
     """
@@ -100,26 +101,15 @@ def update_product_details(product_id, name, new_barcode, category_name, unit, l
             # Actualizar campos básicos
             product.name = name
             product.barcode = new_barcode
-            product.unit = unit
             product.location = location
-            product.purchase_price = Decimal(purchase_price)
             product.sale_price = Decimal(sale_price)
-            
-            # Actualizar fechas si se proporcionan
-            if expiration_date_str and expiration_date_str != "N/A":
-                try:
-                    product.expiration_date = datetime.datetime.strptime(expiration_date_str, '%Y-%m-%d').date()
-                except ValueError:
-                    pass # Mantener fecha anterior si el formato es inválido
-            
-            if date_added_str:
-                try:
-                    product.date_added = datetime.datetime.strptime(date_added_str, '%Y-%m-%d')
-                except ValueError:
-                    pass
 
             if active_status is not None:
-                product.active = active_status
+                # Convert string "True"/"False" to boolean
+                if isinstance(active_status, str):
+                    product.active = active_status == "True"
+                else:
+                    product.active = active_status
 
             product.save()
             

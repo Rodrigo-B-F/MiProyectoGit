@@ -8,22 +8,25 @@ from models import db, Category, Product, Inventory
 
 def find_product_by_name_or_barcode(query):
     """
-    Busca un producto por nombre o código de barras.
+    Busca un producto por nombre, código de barras o categoría.
+    Usa coincidencias parciales para mejor experiencia de búsqueda.
     SIEMPRE retorna una lista de diccionarios.
-    Esto evita errores en SearchScreen y ModifyScreen.
     """
     try:
         if db.is_closed():
             db.connect()
 
-        # JOIN correcto con Inventory
+        # JOIN con Category e Inventory para buscar en todos los campos
         product_query = (
             Product
-            .select(Product, Inventory)
+            .select(Product, Inventory, Category)
             .join(Inventory, JOIN.LEFT_OUTER)
+            .switch(Product)
+            .join(Category, JOIN.LEFT_OUTER)
             .where(
                 (Product.name.contains(query)) |
-                (Product.barcode == query)
+                (Product.barcode.contains(query)) |  # Coincidencia parcial en barcode
+                (Category.name.contains(query))      # Búsqueda por categoría
             )
         )
 
@@ -34,23 +37,16 @@ def find_product_by_name_or_barcode(query):
             inv = Inventory.get_or_none(Inventory.product == prod)
             quantity = inv.quantity if inv else 0
 
-            profit = prod.sale_price - prod.purchase_price
-
             # Armar diccionario del producto
             results.append({
                 "id": prod.id,
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else "Sin Categoría",
-                "unit": prod.unit,
                 "location": prod.location,
-                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
                 "quantity": quantity,
-                "profit": profit,
-                "active": prod.active,
-                "expiration_date": prod.expiration_date,
-                "date_added": prod.date_added
+                "active": prod.active
             })
 
         return results
@@ -86,11 +82,8 @@ def list_products_by_category(category_id):
                 "name": prod.name,
                 "barcode": prod.barcode,
                 "category_name": prod.category.name if prod.category else "N/A",
-                "unit": prod.unit,
                 "quantity": quantity,
-                "purchase_price": prod.purchase_price,
                 "sale_price": prod.sale_price,
-                "profit": prod.profit,
                 "location": prod.location,
                 "active": prod.active
             })
@@ -122,15 +115,10 @@ def get_product_details_by_id(product_id):
             "name": product.name,
             "barcode": product.barcode,
             "category_name": product.category.name if product.category else "Sin Categoría",
-            "unit": product.unit,
             "location": product.location,
-            "purchase_price": product.purchase_price,
             "sale_price": product.sale_price,
             "quantity": quantity,
-            "expiration_date": product.expiration_date,
-            "date_added": product.date_added,
-            "active": product.active,
-            "profit": product.sale_price - product.purchase_price
+            "active": product.active
         }
         
     except Product.DoesNotExist:

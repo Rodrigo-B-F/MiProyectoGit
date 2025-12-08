@@ -8,18 +8,13 @@ Adapted for MiProyectoGit.
 # Product field translations (used in headers and prompts)
 PRODUCT_FIELDS = {
     'name': 'NOMBRE',
-    'barcode': 'CÓDIGO DE BARRAS',
+    'barcode': 'CÓDIGO',
     'category_name': 'CATEGORÍA',
     'description': 'DESCRIPCIÓN',
-    'unit': 'UNIDAD',
     'location': 'UBICACIÓN',
-    'purchase_price': 'PRECIO COMPRA',
-    'sale_price': 'PRECIO VENTA',
+    'sale_price': 'PRECIO',
     'initial_quantity': 'CANTIDAD INICIAL',
-    'quantity': 'CANTIDAD',
-    'expiration_date': 'VENCIMIENTO',
-    'profit': 'GANANCIA',
-    'date_added': 'FECHA AGREGADO',
+    'quantity': 'STOCK',
     'active': 'ESTADO',
     # Sale fields
     'sale_id': 'ID VENTA',
@@ -47,25 +42,20 @@ MENU_OPTIONS = {
         '8. Listar Productos sin Stock Disponible',
         '9. Buscar Producto por Nombre/Código',
         '10. Modificar Detalles del Producto',
-        '11. Filtrar Productos Próximos a Vencer (10 días por defecto)',
-        '12. Activar/Desactivar Producto',
-        '13. Listar Historial de Ventas',
-        '14. Resumen de Ventas por Fecha',
-        '15. **APLICAR OFERTA** (Vencimiento < 10 días)',
-        '16. Modificar Categoría',
-        '17. Salir'
+        '11. Activar/Desactivar Producto',
+        '12. Listar Historial de Ventas',
+        '13. Resumen de Ventas por Fecha',
+        '14. Modificar Categoría',
+        '15. Salir'
     ],
     'update_menu_title': '--- Campo a Actualizar ---',
     'update_menu': [
         '1. Nombre',
         '2. Código de Barras',
         '3. Nombre de Categoría',
-        '4. Unidad de Medida',
-        '5. Precio de Compra',
-        '6. Precio de Venta',
-        '7. Fecha de Expiración (YYYY-MM-DD, o "vacío" para eliminar)',
-        '8. Ubicación',
-        '9. Ver Detalles y Salir'
+        '4. Precio de Venta',
+        '5. Ubicación',
+        '6. Ver Detalles y Salir'
     ]
 }
 
@@ -94,22 +84,16 @@ INPUT_PROMPTS = {
     'name': 'Nombre del Producto: ',
     'barcode': 'Código de Barras (Único): ',
     'category_name': 'Nombre de Categoría: ',
-    'unit': 'Unidad de Medida (Ej: unidad, kg): ',
     'location': 'Ubicación (Ej: Pasillo A): ',
-    'purchase_price': 'Precio de Compra: ',
     'sale_price': 'Precio de Venta: ',
     'initial_quantity': 'Cantidad Inicial en Stock: ',
-    'expiration_date': 'Fecha de Vencimiento (YYYY-MM-DD o dejar vacío): ',
     'quantity_purchase': 'Cantidad de unidades compradas: ',
-    'new_purchase_price': 'Nuevo Precio de Compra (se actualizará en el sistema): ',
     'barcode_search': 'Código de Barras del producto (o "FIN" para terminar): ',
     'quantity_sell': 'Cantidad a vender de {barcode}: ',
     'search_query': 'Ingresa Nombre o Código de Barras a buscar: ',
-    'days_expiring': 'Buscar productos que venzan en los próximos [días]: ',
     'barcode_modify': 'Código de Barras del Producto a modificar: ',
     'status_modify': 'Estado (A = Activar, D = Desactivar, o Enter para invertir): ',
     'category_select': 'Ingrese el número de la categoría que desea ver o "r" para regresar: ',
-    'days_offer': 'Límite de días para la oferta (Dejar vacío para usar 10 días por defecto): ',
     'new_value': 'Ingresa el NUEVO {field}: '
 }
 
@@ -125,7 +109,6 @@ MESSAGES = {
     'quantity_positive': 'La cantidad debe ser mayor que cero.',
     'sale_cancelled': 'Venta cancelada. No se agregaron productos.',
     'no_results': 'No se encontraron productos que coincidan con la búsqueda.',
-    'no_expiring': 'No hay productos que venzan en los próximos {days} días.',
     'no_sales': 'No hay ventas registradas.',
     'no_stock': 'No hay productos sin stock.',
     'no_categories': 'No se encontraron categorías. Agregue productos para crear categorías.',

@@ -55,7 +55,7 @@ def handle_list_categories_and_products():
 
 def handle_update_category():
     """Permite modificar el nombre y/o descripción de una categoría existente."""
-    print(f"\n--- {MENU_OPTIONS['main_menu'][15][4:]} ---")
+    print(f"\n--- {MENU_OPTIONS['main_menu'][13][4:]} ---")
     
     # 1. Listar categorías disponibles
     categories = list_categories()
@@ -90,15 +90,20 @@ def handle_update_category():
     
     # 4. Pedir nuevos datos
     print("\nDeje vacío si no desea modificar el campo.")
-    new_name = input(f"Nuevo Nombre (Actual: {category_name}): ")
-    new_description = input(f"Nueva Descripción (Actual: {current_desc if current_desc else 'Ninguna'}): ")
+    new_name = input(f"Nuevo Nombre (Actual: {category_name}): ").strip()
+    new_description = input(f"Nueva Descripción (Actual: {current_desc if current_desc else 'Ninguna'}): ").strip()
     
-    if not new_name.strip() and not new_description.strip():
+    if not new_name and not new_description:
         print("Operación cancelada. No se realizaron cambios.")
         return
     
     # 5. Actualizar la categoría
-    success, message = update_category(category_id, name=new_name, description=new_description)
+    # Si el usuario no ingresó un nuevo nombre, usar el actual
+    final_name = new_name if new_name else category_name
+    # Si el usuario no ingresó descripción, usar la actual (puede ser None)
+    final_description = new_description if new_description else current_desc
+    
+    success, message = update_category(category_id, name=final_name, description=final_description)
     
     if success:
         print_success(message)

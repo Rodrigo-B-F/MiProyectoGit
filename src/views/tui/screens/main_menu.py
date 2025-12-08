@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static, Button, Footer
+from textual.widgets import Header, Static, Button, Footer
 from textual.containers import Grid
 from textual.binding import Binding
 
@@ -10,7 +10,8 @@ class MainMenuScreen(Screen):
     BINDINGS = [Binding("escape", "quit_app", "Salir (ESC)")]
 
     def compose(self) -> ComposeResult:
-        yield Static("MENÚ PRINCIPAL", id="main-title")
+        yield Header()
+        yield Static("MENÚ PRINCIPAL")
         yield Grid(
             Button("AGREGAR", id="agregar"),
             Button("VER", id="ver"),

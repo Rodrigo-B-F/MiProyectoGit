@@ -21,7 +21,6 @@ class StockMovement(BaseModel):
     """Registro de movimientos de stock (entradas/salidas)."""
     id = AutoField()
     product = ForeignKeyField(Product, backref='movements')
-    batch = IntegerField(null=True)         # Referencia al batch_number del lote
     change = IntegerField()                 # positivo = entrada, negativo = salida
     reason = CharField(null=True)           # 'purchase', 'sale', 'adjustment', etc.
     timestamp = DateTimeField(default=datetime.datetime.now)

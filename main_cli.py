@@ -14,15 +14,13 @@ from views.cli.actions.product_actions import (
     handle_add_product,
     handle_search_product,
     handle_update_product,
-    handle_toggle_status,
-    handle_apply_offer
+    handle_toggle_status
 )
 from views.cli.actions.inventory_actions import (
     handle_record_purchase,
     handle_list_inventory,
     handle_list_available_products,
-    handle_list_out_of_stock_products,
-    handle_expiring_products
+    handle_list_out_of_stock_products
 )
 from views.cli.actions.sale_actions import (
     handle_record_sale,
@@ -49,10 +47,8 @@ def main():
         if choice == '1':
             handle_add_product()
         elif choice == '2':
-            handle_list_inventory(1)
             handle_record_purchase()
         elif choice == '3':
-            handle_list_inventory(1)
             handle_record_sale()
         elif choice == '4':
             handle_list_inventory(1)
@@ -67,23 +63,16 @@ def main():
         elif choice == '9':
             handle_search_product()
         elif choice == '10':
-            handle_list_inventory(1)
             handle_update_product()
         elif choice == '11':
-            handle_expiring_products()
-        elif choice == '12':
-            handle_list_inventory(1)
-            handle_list_inventory(2)
             handle_toggle_status()
-        elif choice == '13':
+        elif choice == '12':
             handle_list_sales_history()
-        elif choice == '14':
+        elif choice == '13':
             handle_sales_summary_by_date()
-        elif choice == '15':
-            handle_apply_offer()
-        elif choice == '16':
+        elif choice == '14':
             handle_update_category()
-        elif choice == '17':
+        elif choice == '15':
             print(MESSAGES['bye'])
             break
         else:

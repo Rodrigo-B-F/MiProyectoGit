@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Header, Footer, Button
+from textual.widgets import Header, Static, Footer, Button
 from textual.containers import Vertical
 
 class ModifyMenuScreen(Screen):
@@ -9,7 +9,8 @@ class ModifyMenuScreen(Screen):
     BINDINGS = [("escape", "dismiss", "Volver (ESC)")]
 
     def compose(self) -> ComposeResult:
-        yield Header(name="MENÚ DE MODIFICACIÓN")
+        yield Header()
+        yield Static("MENÚ DE MODIFICACIÓN")
         yield Vertical(
             Button("MODIFICAR PRODUCTO (DETALLES)", id="modify_product"),
             Button("MODIFICAR CATEGORÍA", id="modify_category"),

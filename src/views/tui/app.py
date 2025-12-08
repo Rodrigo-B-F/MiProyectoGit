@@ -15,6 +15,7 @@ from .screens.history import HistoryScreen
 
 class InventoryTUI(App):
     """La aplicación TUI principal."""
+    TITLE = "Sistema de Inventario"
     CSS_PATH = "tui.css"
     SCREENS = {
         "main_menu": MainMenuScreen,

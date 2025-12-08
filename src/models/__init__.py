@@ -9,7 +9,6 @@ from .category import Category
 from .product import Product
 from .inventory import Inventory, StockMovement
 from .sale import Sale, SaleItem
-from .batch import ProductBatch
 
 __all__ = [
     'db',
@@ -21,5 +20,4 @@ __all__ = [
     'StockMovement',
     'Sale',
     'SaleItem',
-    'ProductBatch',
 ]

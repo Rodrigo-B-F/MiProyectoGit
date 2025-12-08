@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static, Button, Footer
+from textual.widgets import Header, Static, Button, Footer
 from textual.containers import Vertical
 from controllers import list_sales_history, sales_summary_by_date
 from src.utils.translations import PRODUCT_FIELDS
@@ -12,7 +12,8 @@ class HistoryScreen(Screen):
     BINDINGS = [("escape", "dismiss", "Volver (ESC)")]
 
     def compose(self) -> ComposeResult:
-        yield Static("HISTORIAL DE VENTAS", id="main-title")
+        yield Header()
+        yield Static("HISTORIAL DE VENTAS")
         yield Vertical(
             Button("HISTORIAL POR VENTAS (DETALLADO)", id="history_sales"),
             Button("RESUMEN POR FECHA (TOTALES)", id="history_date"),

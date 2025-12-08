@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static, Button, Footer
+from textual.widgets import Header, Static, Button, Footer
 from textual.containers import Vertical
 
 class AddScreen(Screen):
@@ -10,7 +10,8 @@ class AddScreen(Screen):
     BINDINGS = [("escape", "dismiss", "Volver (ESC)")]
 
     def compose(self) -> ComposeResult:
-        yield Static("AGREGAR", id="main-title")
+        yield Header()
+        yield Static("AGREGAR")
         yield Vertical(
             Button("AGREGAR UN NUEVO PRODUCTO", id="add_new_product"),
             Button("AGREGAR ESTOCK A UN PRODUCTO", id="add_stock"),

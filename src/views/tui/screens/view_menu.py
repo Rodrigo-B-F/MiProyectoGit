@@ -5,8 +5,7 @@ from textual.containers import Vertical
 from controllers import (
     list_products_inventory,
     list_available_products,
-    list_out_of_stock_products,
-    list_expiring_products
+    list_out_of_stock_products
 )
 from src.utils.translations import PRODUCT_FIELDS, TUI_MENU_OPTIONS
 from . import INVENTORY_DISPLAY_KEYS
@@ -26,7 +25,6 @@ class ViewScreen(Screen):
             Button(TUI_MENU_OPTIONS['view_inactive'], id="view_inactive"),
             Button(TUI_MENU_OPTIONS['view_available'], id="view_available"),
             Button(TUI_MENU_OPTIONS['view_out_of_stock'], id="view_out_of_stock"),
-            Button(TUI_MENU_OPTIONS['view_expiring'], id="view_expiring"),
             Button(TUI_MENU_OPTIONS['view_by_category'], id="view_by_category"),
             Button(TUI_MENU_OPTIONS['exit'], id="exit_view_menu"),
             id="view-menu-container"
@@ -49,9 +47,5 @@ class ViewScreen(Screen):
                 self.app.push_screen(InventoryViewerScreen(title=TUI_MENU_OPTIONS['view_available'], list_function=list_available_products, header_map=inventory_map))
             elif event.button.id == "view_out_of_stock":
                 self.app.push_screen(InventoryViewerScreen(title=TUI_MENU_OPTIONS['view_out_of_stock'], list_function=list_out_of_stock_products, header_map=inventory_map))
-        elif event.button.id == "view_expiring":
-            DAYS = 10
-            inventory_map = {key: PRODUCT_FIELDS.get(key, key) for key in INVENTORY_DISPLAY_KEYS}
-            self.app.push_screen(InventoryViewerScreen(title=f"{TUI_MENU_OPTIONS['view_expiring']} ({DAYS} DÍAS)", list_function=list_expiring_products, list_args=[DAYS], header_map=inventory_map))
         elif event.button.id == "view_by_category":
             self.app.push_screen("view_by_category_screen")

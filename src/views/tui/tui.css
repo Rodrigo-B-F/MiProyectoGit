@@ -1,136 +1,125 @@
-/* src/tui.css */
+/* src/tui.css - Versión Limpia y Optimizada */
 
-/* --- Estilos Globales --- */
-/* Aplicamos el fondo negro y letras blancas a toda la app */
+/* ============================================
+   ESTILOS GLOBALES
+   ============================================ */
+
 Screen {
     layout: vertical;
-    background: #000000; /* Negro */
-    color: #FFFFFF;      /* Blanco */
-    
-    /* --- CORRECCIÓN AÑADIDA --- */
-    /* Centra horizontalmente todos los hijos directos (como los contenedores de menú) */
-    align-horizontal: center;
-}
-
-/* --- Estilo del Título Principal --- */
-#main-title {
-    width: 100%;
-    height: 3;
-    /* content-align: center middle; es válido si se aplica a un Container/Screen */
-    align: center middle;
-    margin-top: 1;
-    text-style: bold;
-}
-
-/* --- Cuadrícula del Menú (3x2) --- */
-#menu-grid {
-    layout: grid;
-    /* 3 columnas, 2 filas */
-    grid-size: 3 2;
-    /* Espacio entre botones */
-    grid-gutter: 0;
-    /* Espacio alrededor de la cuadrícula */
-    padding: 0;
-    /* --- AÑADIDO (para centrar el menú principal también) --- */
-    align-horizontal: center;
-}
-
-/* --- Estilo de los Botones --- */
-Button {
-    /* Fondo negro y texto blanco, como pediste */
     background: #000000;
     color: #FFFFFF;
-    
-    /* Borde blanco sólido. SE ELIMINA '1px' */
+    align-horizontal: center;
+}
+
+/* ============================================
+   MENÚ PRINCIPAL
+   ============================================ */
+
+#menu-grid {
+    layout: grid;
+    grid-size: 3 2;
+    grid-gutter: 0 0;
+    width: 80;
+    align-horizontal: center;
+    align-vertical: middle;
+    padding: 0;
+    margin-top: 10;
+}
+
+/* ============================================
+   BOTONES GLOBALES
+   ============================================ */
+
+Button {
+    background: #000000;
+    color: #FFFFFF;
     border: solid #FFFFFF;
-    
-    /* Altura fija para los botones */
-    height: 5;
+    height: 3;
     width: 100%;
 }
 
-/* --- Estilo al pasar el mouse (Hover) --- */
 Button:hover {
-    /* Un gris oscuro para saber qué se está seleccionando */
     background: #333333;
-    /* SE ELIMINA '1px' */
     border: solid #FFFFFF;
 }
 
-/* --- Estilo del Pop-up (NotificationScreen) --- */
+/* ============================================
+   NOTIFICACIONES (POPUPS)
+   ============================================ */
+
 NotificationScreen {
     align: center middle;
 }
 
-NotificationScreen > Vertical {
+NotificationScreen>Vertical {
     width: 60;
     height: 7;
     background: #000000;
     color: #FFFFFF;
-    /* SE ELIMINA '1px' */
     border: solid #FFFFFF;
 }
 
-NotificationScreen > Vertical > Static {
+NotificationScreen>Vertical>Static {
     width: 100%;
     height: 100%;
-    /* content-align en Static debe ser text-align o align: <h> <v> */
     align: center middle;
     padding: 1 2;
 }
 
-NotificationScreen > Vertical > Button {
+NotificationScreen>Vertical>Button {
     width: 100%;
-    /* Ponemos el borde arriba para separarlo del texto. SE ELIMINA '1px' */
     border-top: solid #FFFFFF;
     border-bottom: none;
     border-left: none;
     border-right: none;
 }
 
-#add-menu-container {
-    /* Centramos el menú verticalmente (centra los botones) */
+/* ============================================
+   CONTENEDORES DE MENÚ (AGREGAR, VER, MODIFICAR, HISTORIAL)
+   ============================================ */
+
+#add-menu-container,
+#view-menu-container,
+#modify-menu-container,
+#history-menu-container {
     align: center middle;
-    /* Le damos un ancho fijo para que los botones no se extiendan por toda la pantalla */
     width: 60%;
-    /* Centramos la caja del menú (ESTO SE ELIMINA, LO HACE 'Screen') */
-    /* align-horizontal: center; */
     padding: 2 0;
 }
 
-#add-menu-container Button {
-    /* Damos más espacio entre los botones apilados */
+#add-menu-container Button,
+#view-menu-container Button,
+#modify-menu-container Button,
+#history-menu-container Button {
     margin-bottom: 1;
-    /* Hacemos que los botones llenen el ancho de su contenedor (60% de la pantalla) */
-    width: 100%; 
+    width: 100%;
 }
+
+/* ============================================
+   FORMULARIOS
+   ============================================ */
 
 #form-instruction {
     text-style: bold;
     margin-bottom: 1;
     color: $accent;
-    /* CORREGIDO: Usar text-align para centrar el texto */
     text-align: center;
 }
 
-/* Etiquetas de campo */
 AddProductFormScreen Label {
-    color: #FFFFFF; /* Blanco */
+    color: #FFFFFF;
     margin-top: 1;
     text-style: bold;
 }
 
-/* Campos de entrada */
 .form-input {
-    background: #222222; /* Gris oscuro para diferenciar el campo del fondo */
+    background: #222222;
     color: #FFFFFF;
-    /* SE ELIMINA '1px' */
     border: solid #555555;
-    width: 80%; /* Ancho para que no ocupen toda la pantalla */
+    width: 80%;
     height: 3;
 }
 
-/* Contenedor de botones del formulario (Guardar/Cancelar) */
 #form-buttons-grid {
     layout: grid;
     grid-size: 2;
@@ -143,7 +132,7 @@ AddProductFormScreen Label {
 
 #form_feedback {
     margin-top: 1;
-    color: #FF0000; /* Rojo para errores */
+    color: #FF0000;
     background: #000000;
     text-style: bold;
     width: 80%;
@@ -151,54 +140,12 @@ AddProductFormScreen Label {
     min-height: 1;
 }
 
-#view-menu-container {
-    /* Centramos el menú verticalmente (centra los botones) */
-    align: center middle;
-    /* Le damos un ancho fijo para que los botones no se extiendan por toda la pantalla */
-    width: 60%;
-    /* Centramos la caja del menú (ESTO SE ELIMINA, LO HACE 'Screen') */
-    /* align-horizontal: center; */
-    padding: 2 0;
-}
+/* ============================================
+   PANTALLA DE BÚSQUEDA
+   ============================================ */
 
-#view-menu-container Button {
-    /* Damos más espacio entre los botones apilados */
-    margin-bottom: 1;
-    /* Hacemos que los botones llenen el ancho de su contenedor (60% de la pantalla) */
-    width: 100%; 
-}
-
-/* Estilo base para las pantallas que solo listan datos */
-ListActiveProductsScreen {
-    layout: vertical; 
-    align: center middle;
-    padding: 1;
-}
-
-/* El feedback ahora también se centra */
-#list_feedback {
-    color: cyan; /* Un color distinto para el feedback de listado */
-    text-style: bold;
-    /* CORREGIDO: Usar text-align para centrar el texto */
-    text-align: center;
-    width: 100%;
-    margin-bottom: 2;
-}
-
-/* Contenedor principal para la tabla para que se vea bien */
-#inventory_table {
-    width: 95%;
-    height: 80%; /* Le damos un gran espacio a la tabla */
-    border: double #00FF00; /* Borde distinto para destacar listado */
-    background: #111111;
-    color: #FFFFFF;
-}
-
-
-/* --- Estilos para la Pantalla de Búsqueda --- */
 SearchProductScreen {
-    /* Usamos un layout vertical para apilar los elementos */
-    layout: vertical; 
+    layout: vertical;
 }
 
 .search-form-container {
@@ -210,10 +157,8 @@ SearchProductScreen {
 
 #search_input {
     width: 80%;
-    /* Reutilizamos el estilo de input que ya definimos */
-    background: #222222; 
+    background: #222222;
     color: #FFFFFF;
-    /* SE ELIMINA '1px' */
     border: solid #555555;
     height: 3;
     margin-bottom: 1;
@@ -227,47 +172,39 @@ SearchProductScreen {
 
 #search_results_table {
     width: 90%;
-    /* Centramos la tabla */
     align-horizontal: center;
     height: auto;
     max-height: 80%;
     border: solid #555555;
-    /* Estilos de la tabla */
     background: #111111;
     color: #FFFFFF;
 }
 
-#results_title {
-    width: 100%;
-    text-style: bold;
-    color: #FFFFFF;
-    /* CORREGIDO: Usar text-align para centrar el texto */
-    text-align: center;
-    margin-top: 1;
-}
-
 #search_feedback {
-    color: yellow; /* Amarillo para feedback de búsqueda */
+    color: yellow;
     text-style: bold;
     margin-bottom: 1;
 }
 
-/* --- Estilos para la Pantalla de Ver por Categoría --- */
+/* ============================================
+   PANTALLA VER POR CATEGORÍA
+   ============================================ */
+
 ViewByCategoryScreen {
-    layout: vertical; 
+    layout: vertical;
     align: center top;
     padding: 1;
 }
 
 #category_title {
-    color: #00FFFF; /* Cian */
+    color: #00FFFF;
     text-style: bold;
     margin-bottom: 1;
 }
 
 #category_list_table {
     width: 90%;
-    height: 30%; /* Le damos un espacio fijo a la lista de categorías */
+    height: 30%;
     margin-bottom: 2;
     border: solid #00FFFF;
 }
@@ -276,7 +213,6 @@ ViewByCategoryScreen {
     width: 100%;
     text-style: bold;
     color: #FFFFFF;
-    /* CORREGIDO: Usar text-align para centrar el texto */
     text-align: center;
     margin-top: 2;
     margin-bottom: 1;
@@ -285,186 +221,40 @@ ViewByCategoryScreen {
 #products_by_category_table {
     width: 95%;
     height: auto;
-    max-height: 50%; /* Limita la altura de la tabla de productos */
+    max-height: 50%;
     border: double #FFFFFF;
     background: #111111;
     color: #FFFFFF;
 }
 
-.hidden {
-    display: none; /* Clase para ocultar elementos dinámicamente */
-}
+/* ============================================
+   PANTALLA DE MODIFICACIÓN
+   ============================================ */
 
-/* --- Estilos para la Pantalla de Modificar --- */
-#modify-menu-container {
-    /* Centramos el menú verticalmente */
-    align: center middle;
-    /* Ancho fijo para los botones */
-    width: 60%;
-    align-horizontal: center;
-    padding: 2 0;
-}
-
-#modify-menu-container Button {
-    /* Damos más espacio entre los botones apilados */
-    margin-bottom: 1;
-    /* Hacemos que los botones llenen el ancho de su contenedor */
-    width: 100%; 
-}
-
-/* Estilos para el modal de selección */
-.selection-container {
-    /* CORREGIDO: Se elimina margin: auto; */
-    align: center middle;
-    width: 60%;
-    max-width: 80; 
-    height: auto;
-    background: #222222;
-    border: solid #00FFFF;
-    padding: 1 3;
-}
-
-.selection-container .modal-title {
-    color: #FFFFFF;
-    text-style: bold;
-    margin-bottom: 2;
-    /* CORREGIDO: Usar text-align en lugar de content-align */
-    text-align: center;
-}
-
-.selection-container Button {
-    width: 100%;
-    margin-bottom: 0;
-    /* CORREGIDO: Usar 1 en lugar de 0.5 */
-    margin-top: 1; 
-}
-
-/* --- Estilos para la Pantalla de Modificación --- */
-.search-section {
-    height: 5;
-    margin: 1 0;
-    align: center middle;
-}
-
-.search-input {
-    width: 70%;
-    height: 3;
-    background: #222222;
-    color: #FFFFFF;
-    border: solid #555555;
-    margin-right: 1;
-}
-
-.search-button {
-    width: 25%;
-    height: 3;
-}
-
-.feedback {
-    margin: 1 0;
-    color: #FFFF00;
-    text-style: bold;
-    min-height: 2;
-}
-
-.results-table {
-    width: 95%;
-    height: 30%;
-    border: solid #555555;
-    background: #111111;
-}
-
-.section-title {
-    width: 100%;
-    text-style: bold;
-    color: #00FFFF;
-    margin-top: 2;
-    margin-bottom: 1;
-    text-align: center;
-}
-
-.form-container {
-    border: double #00FF00;
-    padding: 1;
-    margin: 1 0;
-    background: #111111;
-}
-
-.form-container Horizontal {
-    height: 4;
-    margin-bottom: 1;
-    align: center middle;
-}
-
-.form-container Horizontal Vertical {
-    width: 50%;
-    margin: 0 1;
-}
-
-.form-label {
-    color: #FFFFFF;
-    text-style: bold;
-    margin-bottom: 1;
-}
-
-.disabled-field {
-    background: #333333;
-    color: #888888;
-    border: solid #555555;
-    width: 90%;
-}
-
-.editable-field {
-    background: #222222;
-    color: #FFFFFF;
-    border: solid #555555;
-    width: 90%;
-}
-
-.action-buttons {
-    margin-top: 2;
-    height: 4;
-    align: center middle;
-}
-
-.action-buttons Button {
-    margin: 0 1;
-    min-width: 20%;
-    height: 3;
-}
-
-/* --- Estilos para la Pantalla de Búsqueda y Modificación --- */
 #modify-form-grid {
     layout: grid;
     grid-size: 2;
-    
-    /* FIX: Cambiado de '2 1' a '0 1' 
-       (0 espacio vertical, 1 espacio horizontal) */
-    grid-gutter: 0 1; 
-    
+    grid-gutter: 0 1;
     width: 90%;
     margin-top: 2;
     padding: 0 2;
 }
 
 #modify-form-grid Label {
-    /* Las etiquetas de la izquierda */
     align-horizontal: right;
     margin-right: 1;
     height: auto;
 }
 
 #modify-form-grid Input {
-    /* Los inputs de la derecha */
     width: 100%;
 }
 
-/* El botón de guardar necesita abarcar 2 columnas */
 #save_modifications {
     column-span: 2;
     width: 50%;
     align: center middle;
-    margin-top: 2; /* Un pequeño margen sobre el botón */
+    margin-top: 2;
 }
 
 #modify-form-title {
@@ -475,33 +265,45 @@ ViewByCategoryScreen {
     border-bottom: solid #FFFFFF;
 }
 
-.hidden {
-    display: none; 
+#modify_search_input {
+    width: 80%;
+    background: #222222;
+    color: #FFFFFF;
+    border: solid #555555;
+    height: 3;
 }
 
-/* --- Estilos para la Pantalla de Venta (TPV) --- */
+#modify_search_feedback {
+    color: yellow;
+    text-style: bold;
+    margin: 1 0;
+}
+
+#modify_results_table {
+    width: 95%;
+    height: 5;
+    border: solid #555555;
+    background: #111111;
+}
+
+/* ============================================
+   PANTALLA DE VENTA (TPV)
+   ============================================ */
 
 SaleScreen {
-    /* Fondo negro general */
     background: #000000;
 }
 
 #sale-grid {
     layout: grid;
-    grid-size: 2; /* Dos columnas */
+    grid-size: 2;
     grid-gutter: 2;
     width: 100%;
     height: 100%;
     padding: 0 1;
 }
 
-#sale-left-pane {
-    width: 100%;
-    height: 100%;
-    border: solid #555555;
-    padding: 1;
-}
-
+#sale-left-pane,
 #sale-right-pane {
     width: 100%;
     height: 100%;
@@ -513,7 +315,7 @@ SaleScreen {
     width: 100%;
     text-align: center;
     text-style: bold;
-    color: #00FFFF; /* Cian */
+    color: #00FFFF;
     margin-bottom: 1;
 }
 
@@ -524,19 +326,19 @@ SaleScreen {
     margin-bottom: 1;
 }
 
-/* Controles de búsqueda */
 #sale_search_input {
     width: 70%;
 }
+
 #sale_search_button {
     width: 28%;
-    min-width: 0; /* Permitir que sea pequeño */
+    min-width: 0;
 }
 
-/* Controles para añadir */
 #sale_found_label {
     text-style: bold;
 }
+
 .sale-found-text {
     width: 100%;
     height: auto;
@@ -549,11 +351,11 @@ SaleScreen {
 #sale_quantity_input {
     width: 20%;
 }
+
 #sale_add_to_cart_button {
     width: 78%;
 }
 
-/* Log de feedback */
 #sale_feedback_log {
     width: 100%;
     height: 10;
@@ -562,17 +364,16 @@ SaleScreen {
     margin-top: 1;
 }
 
-/* Tabla del carrito */
 #sale_cart_table {
     width: 100%;
-    height: 70%; /* Que ocupe la mayor parte de la columna */
+    height: 70%;
     border: solid #FFFFFF;
 }
 
 #sale_remove_item_button {
     width: 100%;
     height: 3;
-    margin-top: 1; 
+    margin-top: 1;
 }
 
 #sale_total_display {
@@ -581,35 +382,20 @@ SaleScreen {
     text-align: right;
     align-vertical: middle;
     text-style: bold;
-    color: #00FF00; /* Verde */
+    color: #00FF00;
     margin-top: 1;
     border: double #00FF00;
 }
 
-/* Botones finales */
-#sale_cancel_button {
-    width: 49%;
-}
+#sale_cancel_button,
 #sale_finalize_button {
     width: 49%;
 }
 
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
 .hidden {
     display: none;
 }
-
-/* --- Estilos para la Pantalla de Historial --- */
-#history-menu-container {
-    /* (Copiado de #add-menu-container para consistencia) */
-    align: center middle;
-    width: 60%;
-    /* Centramos la caja del menú (ESTO SE ELIMINA, LO HACE 'Screen') */
-    /* align-horizontal: center; */
-    padding: 2 0;
-}
-
-#history-menu-container Button {
-    margin-bottom: 1;
-    width: 100%; 
-}
-/*ANTIGUO*/

@@ -1,5 +1,5 @@
 """
-Controladores de la aplicación.
+Controladores de la aplicación (Simplificado).
 Este archivo re-exporta las funciones de los módulos refactorizados para mantener compatibilidad.
 """
 
@@ -17,13 +17,11 @@ from .product.product_search import (
 from .product.product_business import apply_expiring_product_offer
 
 # Inventory Controller
-from .inventory.stock_management import record_purchase
+from .inventory.stock_management import add_stock
 from .inventory.inventory_reporting import (
     list_products_inventory,
     list_available_products,
-    list_out_of_stock_products,
-    list_expiring_products,
-    list_batches_for_product
+    list_out_of_stock_products
 )
 from .inventory.category_management import (
     list_categories,
@@ -36,10 +34,3 @@ from .sale.sale_reporting import (
     list_sales_history,
     sales_summary_by_date
 )
-
-# Batch Controller
-from .batch.batch_management import (
-    list_product_batches,
-    get_batch_summary
-)
-from .batch.batch_maintenance import consolidate_inventory
