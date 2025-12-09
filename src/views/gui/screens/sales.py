@@ -52,8 +52,15 @@ class SalesScreen(tk.Frame):
                     command=self.add_to_cart).pack(fill='x', pady=SPACING['sm'])
         
         # Cart display
-        cart_label = StyledLabel(form_card.content, text="Carrito de Compra", style='subheading')
-        cart_label.pack(anchor='w', pady=(SPACING['md'], SPACING['xs']))
+        cart_header_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
+        cart_header_frame.pack(fill='x', pady=(SPACING['md'], SPACING['xs']))
+        
+        cart_label = StyledLabel(cart_header_frame, text="Carrito de Compra", style='subheading')
+        cart_label.pack(side='left')
+        
+        # Ajustar button for cart
+        StyledButton(cart_header_frame, "Ajustar", style='secondary',
+                    command=self.adjust_cart_columns, width=8).pack(side='right')
         
         # Create Treeview for cart
         cart_container = tk.Frame(form_card.content, bg=COLORS['bg_primary'])
@@ -66,7 +73,7 @@ class SalesScreen(tk.Frame):
         # Treeview
         columns = ('producto', 'cantidad', 'precio', 'subtotal')
         self.cart_tree = ttk.Treeview(cart_container, columns=columns, show='headings',
-                                      height=2, yscrollcommand=scrollbar.set)
+                                      height=5, yscrollcommand=scrollbar.set)
         
         # Configure scrollbar
         scrollbar.config(command=self.cart_tree.yview)
@@ -78,10 +85,10 @@ class SalesScreen(tk.Frame):
         self.cart_tree.heading('subtotal', text='SUBTOTAL')
         
         # Define column widths
-        self.cart_tree.column('producto', width=180, anchor='w')
-        self.cart_tree.column('cantidad', width=60, anchor='center')
-        self.cart_tree.column('precio', width=90, anchor='e')
-        self.cart_tree.column('subtotal', width=100, anchor='e')
+        self.cart_tree.column('producto', width=170, anchor='w')
+        self.cart_tree.column('cantidad', width=65, anchor='center')
+        self.cart_tree.column('precio', width=65, anchor='e')
+        self.cart_tree.column('subtotal', width=110, anchor='e')
         
         self.cart_tree.pack(side='left', fill='both', expand=True)
         
@@ -243,6 +250,13 @@ class SalesScreen(tk.Frame):
         """Clear the cart"""
         self.cart = []
         self.update_cart_display()
+    
+    def adjust_cart_columns(self):
+        """Reset cart table columns to default widths"""
+        self.cart_tree.column('producto', width=170)
+        self.cart_tree.column('cantidad', width=65)
+        self.cart_tree.column('precio', width=65)
+        self.cart_tree.column('subtotal', width=110)
     
     def load_history(self):
         """Load sales history"""

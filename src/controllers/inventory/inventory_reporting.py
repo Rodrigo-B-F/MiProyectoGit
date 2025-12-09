@@ -18,16 +18,25 @@ def list_products_inventory(option):
         query = (Inventory
                  .select(Inventory, Product, Category)
                  .join(Product)
+                 .switch(Product)
                  .join(Category, JOIN.LEFT_OUTER)
                  .where(Product.active == option))
         
         data = []
         for inv in query:
             prod = inv.product
+            # Safely get category name
+            category_name = None
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin categoría"
+            
             data.append({
                 "name": prod.name,
                 "barcode": prod.barcode,
-                "category_name": prod.category.name if prod.category else None,
+                "category_name": category_name,
                 "quantity": inv.quantity,
                 "sale_price": prod.sale_price,
                 "location": prod.location,
@@ -48,18 +57,28 @@ def list_available_products():
     try:
         db.connect()
         query = (Inventory
-                 .select(Inventory, Product)
+                 .select(Inventory, Product, Category)
                  .join(Product)
+                 .switch(Product)
+                 .join(Category, JOIN.LEFT_OUTER)
                  .where(Inventory.quantity > 0)
                  .where(Product.active == True))
         
         results = []
         for inv in query:
             prod = inv.product
+            # Safely get category name
+            category_name = "N/A"
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin categoría"
+            
             results.append({
                 "barcode": prod.barcode,
                 "name": prod.name,
-                "category_name": prod.category.name if prod.category else "N/A",
+                "category_name": category_name,
                 "quantity": inv.quantity,
                 "sale_price": prod.sale_price,
                 "location": prod.location,
@@ -80,18 +99,28 @@ def list_out_of_stock_products():
     try:
         db.connect()
         query = (Inventory
-                 .select(Inventory, Product)
+                 .select(Inventory, Product, Category)
                  .join(Product)
+                 .switch(Product)
+                 .join(Category, JOIN.LEFT_OUTER)
                  .where(Inventory.quantity <= 0)
                  .where(Product.active == True))
         
         results = []
         for inv in query:
             prod = inv.product
+            # Safely get category name
+            category_name = "N/A"
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin categoría"
+            
             results.append({
                 "barcode": prod.barcode,
                 "name": prod.name,
-                "category_name": prod.category.name if prod.category else "N/A",
+                "category_name": category_name,
                 "quantity": 0,
                 "sale_price": prod.sale_price,
                 "location": prod.location,

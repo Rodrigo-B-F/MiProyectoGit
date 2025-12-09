@@ -54,6 +54,9 @@ class CategoryCombobox(tk.Frame):
         categories = list_categories() or []
         category_names = [cat['name'] for cat in categories]
         
+        # Add "Sin Categoría" option at the beginning
+        category_names.insert(0, "Sin Categoría")
+        
         self.combobox['values'] = category_names
         
         # Set placeholder if empty

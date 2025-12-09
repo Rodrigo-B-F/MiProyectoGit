@@ -25,8 +25,8 @@ def find_product_by_name_or_barcode(query):
             .join(Category, JOIN.LEFT_OUTER)
             .where(
                 (Product.name.contains(query)) |
-                (Product.barcode.contains(query)) |  # Coincidencia parcial en barcode
-                (Category.name.contains(query))      # Búsqueda por categoría
+                (Product.barcode.contains(query)) |
+                ((Product.category.is_null(False)) & (Category.name.contains(query)))
             )
         )
 
@@ -37,12 +37,20 @@ def find_product_by_name_or_barcode(query):
             inv = Inventory.get_or_none(Inventory.product == prod)
             quantity = inv.quantity if inv else 0
 
+            # Safely get category name
+            category_name = "Sin Categoría"
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin Categoría"
+
             # Armar diccionario del producto
             results.append({
                 "id": prod.id,
                 "name": prod.name,
                 "barcode": prod.barcode,
-                "category_name": prod.category.name if prod.category else "Sin Categoría",
+                "category_name": category_name,
                 "location": prod.location,
                 "sale_price": prod.sale_price,
                 "quantity": quantity,
@@ -97,6 +105,43 @@ def list_products_by_category(category_id):
         if not db.is_closed():
             db.close()
 
+def list_products_without_category():
+    """
+    Lista todos los productos que NO tienen categoría asignada (category_id es NULL).
+    """
+    try:
+        if db.is_closed():
+            db.connect()
+        
+        query = (Product
+                 .select(Product, Inventory)
+                 .join(Inventory, JOIN.LEFT_OUTER)
+                 .where(Product.category.is_null()))
+        
+        results = []
+        for prod in query:
+            inv = Inventory.get_or_none(Inventory.product == prod)
+            quantity = inv.quantity if inv else 0
+            
+            results.append({
+                "name": prod.name,
+                "barcode": prod.barcode,
+                "category_name": "Sin Categoría",
+                "quantity": quantity,
+                "sale_price": prod.sale_price,
+                "location": prod.location,
+                "active": prod.active
+            })
+            
+        return results
+        
+    except Exception as e:
+        print(f"Error al listar productos sin categoría: {e}")
+        return []
+    finally:
+        if not db.is_closed():
+            db.close()
+
 def get_product_details_by_id(product_id):
     """
     Obtiene los detalles completos de un producto por su ID.
@@ -110,11 +155,19 @@ def get_product_details_by_id(product_id):
         inv = Inventory.get_or_none(Inventory.product == product)
         quantity = inv.quantity if inv else 0
         
+        # Safely get category name
+        category_name = "Sin Categoría"
+        if product.category_id:
+            try:
+                category_name = product.category.name
+            except:
+                category_name = "Sin Categoría"
+        
         return {
             "id": product.id,
             "name": product.name,
             "barcode": product.barcode,
-            "category_name": product.category.name if product.category else "Sin Categoría",
+            "category_name": category_name,
             "location": product.location,
             "sale_price": product.sale_price,
             "quantity": quantity,

@@ -12,6 +12,7 @@ from .product.product_crud import (
 from .product.product_search import (
     find_product_by_name_or_barcode,
     list_products_by_category,
+    list_products_without_category,
     get_product_details_by_id
 )
 from .product.product_business import apply_expiring_product_offer
@@ -25,7 +26,8 @@ from .inventory.inventory_reporting import (
 )
 from .inventory.category_management import (
     list_categories,
-    update_category
+    update_category,
+    delete_category
 )
 
 # Sale Controller
