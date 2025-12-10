@@ -25,7 +25,7 @@ class Sidebar(tk.Frame):
         title_frame.pack_propagate(False)
         
         title = tk.Label(title_frame, 
-                        text="Sistema\nde\nInventario",
+                        text="Sistema de\nInventario",
                         font=FONTS['heading'],
                         bg=SIDEBAR_CONFIG['bg'],
                         fg=COLORS['text_white'],

@@ -74,7 +74,6 @@ class ProductsScreen(tk.Frame):
             'quantity': PRODUCT_FIELDS['quantity'],
             'sale_price': PRODUCT_FIELDS['sale_price'],
             'location': PRODUCT_FIELDS['location'],
-            'active': PRODUCT_FIELDS['active']
         }
         
         self.table = ModernTable(table_card.content, columns, height=15)
@@ -83,22 +82,24 @@ class ProductsScreen(tk.Frame):
         # Bind double-click to populate edit form
         self.table.tree.bind('<Double-Button-1>', self.on_product_double_click)
         
-        # Right side - Tabbed Forms
-        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=365)
+        # Right side - Forms with FIXED WIDTH
+        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
         right_frame.pack(side='right', fill='y')
-        right_frame.pack_propagate(False)
+        right_frame.pack_propagate(False)  # Prevent frame from shrinking
+        right_frame.config(width=240)  # Force width
         
-        # Tab buttons
+        # Tab buttons - BOTH BUTTONS IN ONE ROW
         tab_frame = tk.Frame(right_frame, bg=COLORS['bg_primary'])
         tab_frame.pack(fill='x', pady=(0, SPACING['sm']))
         
+        # Make buttons fill the width equally
         self.add_tab_btn = StyledButton(tab_frame, "Agregar Producto", style='primary',
-                                       command=lambda: self.switch_tab('add'), width=18)
-        self.add_tab_btn.pack(side='left', padx=(0, SPACING['xs']))
+                                       command=lambda: self.switch_tab('add'))
+        self.add_tab_btn.pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
         
         self.edit_tab_btn = StyledButton(tab_frame, "Modificar Producto", style='secondary',
-                                        command=lambda: self.switch_tab('edit'), width=18)
-        self.edit_tab_btn.pack(side='left')
+                                        command=lambda: self.switch_tab('edit'))
+        self.edit_tab_btn.pack(side='left', fill='x', expand=True)
         
         # Unbind default hover events and add custom ones
         self.add_tab_btn.unbind('<Enter>')
@@ -153,14 +154,14 @@ class ProductsScreen(tk.Frame):
         self.quantity_field = FormField(form_card.content, "Cantidad Inicial", placeholder="0")
         self.quantity_field.pack(fill='x', pady=SPACING['sm'])
         
-        # Buttons
+        # Buttons - side by side
         btn_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
         btn_frame.pack(fill='x', pady=SPACING['md'])
         
-        StyledButton(btn_frame, "Agregar Producto", style='success',
-                    command=self.add_product).pack(fill='x', pady=SPACING['xs'])
-        StyledButton(btn_frame, "Limpiar Formulario", style='secondary',
-                    command=self.clear_add_form).pack(fill='x', pady=SPACING['xs'])
+        StyledButton(btn_frame, "Agregar", style='success',
+                    command=self.add_product).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
+        StyledButton(btn_frame, "Limpiar", style='secondary',
+                    command=self.clear_add_form).pack(side='left', fill='x', expand=True)
     
     def create_edit_form(self):
         """Create edit product form"""
@@ -216,14 +217,14 @@ class ProductsScreen(tk.Frame):
         self.edit_status_combo.pack(fill='x', pady=(0, SPACING['sm']))
         self.edit_status_combo.set('Activo')
         
-        # Buttons
+        # Buttons - side by side
         btn_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
         btn_frame.pack(fill='x', pady=SPACING['md'])
         
         StyledButton(btn_frame, "Actualizar", style='success',
-                    command=self.update_product).pack(fill='x', pady=SPACING['xs'])
-        StyledButton(btn_frame, "Limpiar Formulario", style='secondary',
-                    command=self.clear_edit_form).pack(fill='x', pady=SPACING['xs'])
+                    command=self.update_product).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
+        StyledButton(btn_frame, "Limpiar", style='secondary',
+                    command=self.clear_edit_form).pack(side='left', fill='x', expand=True)
         
         # Store current product ID
         self.current_product_id = None

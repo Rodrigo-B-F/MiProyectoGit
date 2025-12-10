@@ -70,17 +70,18 @@ class CategoriesScreen(tk.Frame):
         self.table = ModernTable(table_card.content, columns, height=20)
         self.table.pack(fill='both', expand=True)
         
-        # Configure column widths
-        self.table.tree.column('name', width=140, minwidth=100)
-        self.table.tree.column('description', width=665, minwidth=300)
+        # Adjust column widths - 1/4 for name, 3/4 for description
+        self.table.tree.column('name', width=75, minwidth=60)
+        self.table.tree.column('description', width=225, minwidth=150)
         
         # Bind row selection
         self.table.tree.bind('<<TreeviewSelect>>', self.on_category_select)
         
-        # Right side - Edit form
-        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=365)
+        # Right side - Edit form with FIXED WIDTH
+        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
         right_frame.pack(side='right', fill='y')
         right_frame.pack_propagate(False)
+        right_frame.config(width=240)  # Force width
         
         edit_card = Card(right_frame, title="Editar Categoria")
         edit_card.pack(fill='both', expand=True)
@@ -101,17 +102,15 @@ class CategoriesScreen(tk.Frame):
                                 relief='solid', borderwidth=1, wrap='word')
         self.desc_text.pack(fill='x', pady=SPACING['sm'])
         
-        # Buttons frame
+        # Buttons frame - side by side
         buttons_frame = tk.Frame(edit_card.content, bg=COLORS['bg_secondary'])
         buttons_frame.pack(fill='x', pady=SPACING['md'])
         
-        # Update button
+        # Update and Delete buttons side by side
         StyledButton(buttons_frame, "Actualizar", style='primary',
-                    command=self.update_category_data).pack(fill='x', pady=SPACING['xs'])
-        
-        # Delete button
+                    command=self.update_category_data).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
         StyledButton(buttons_frame, "Eliminar", style='danger',
-                    command=self.confirm_delete).pack(fill='x', pady=SPACING['xs'])
+                    command=self.confirm_delete).pack(side='left', fill='x', expand=True)
         
         # Info text
         info_text = tk.Label(edit_card.content,
@@ -159,9 +158,9 @@ class CategoriesScreen(tk.Frame):
             self.table.insert_data(self.all_categories)
     
     def adjust_columns(self):
-        """Reset table columns to default widths"""
-        self.table.tree.column('name', width=140)
-        self.table.tree.column('description', width=665)
+        """Reset table columns to 1/4 and 3/4 proportions"""
+        self.table.tree.column('name', width=75)
+        self.table.tree.column('description', width=225)
     
     def on_category_select(self, event):
         """Handle category selection from table"""

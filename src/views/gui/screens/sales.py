@@ -29,10 +29,11 @@ class SalesScreen(tk.Frame):
         main_container = tk.Frame(self, bg=COLORS['bg_primary'])
         main_container.pack(fill='both', expand=True, padx=SPACING['lg'], pady=SPACING['md'])
         
-        # Left side - Sales form
-        left_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=450)
+        # Left side - Sales form with FIXED WIDTH
+        left_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
         left_frame.pack(side='left', fill='y', padx=(0, SPACING['sm']))
         left_frame.pack_propagate(False)
+        left_frame.config(width=240)  # Force width
         
         form_card = Card(left_frame, title="Nueva Venta")
         form_card.pack(fill='both', expand=True)
@@ -52,35 +53,40 @@ class SalesScreen(tk.Frame):
         self.quantity_field = FormField(form_card.content, "Cantidad", placeholder="0")
         self.quantity_field.pack(fill='x', pady=SPACING['sm'])
         
-        StyledButton(form_card.content, "Agregar al Carrito", style='primary',
-                    command=self.add_to_cart).pack(fill='x', pady=SPACING['sm'])
-        
-        # Cart display
+        # Cart display with buttons
         cart_header_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
         cart_header_frame.pack(fill='x', pady=(SPACING['md'], SPACING['xs']))
         
-        cart_label = StyledLabel(cart_header_frame, text="Carrito de Compra", style='subheading')
-        cart_label.pack(side='left')
+        # Buttons side by side - expand dynamically
+        btn_container = tk.Frame(cart_header_frame, bg=COLORS['bg_secondary'])
+        btn_container.pack(fill='x', expand=True)
         
-        # Ajustar button for cart
-        StyledButton(cart_header_frame, "Ajustar", style='secondary',
-                    command=self.adjust_cart_columns, width=8).pack(side='right')
+        StyledButton(btn_container, "Agregar al Carrito", style='primary',
+                    command=self.add_to_cart).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
+        StyledButton(btn_container, "Ajustar", style='secondary',
+                    command=self.adjust_cart_columns).pack(side='left', fill='x', expand=True)
         
         # Create Treeview for cart
         cart_container = tk.Frame(form_card.content, bg=COLORS['bg_primary'])
         cart_container.pack(fill='both', expand=True, pady=SPACING['sm'])
         
-        # Scrollbar
-        scrollbar = ttk.Scrollbar(cart_container)
-        scrollbar.pack(side='right', fill='y')
+        # Scrollbars
+        vsb = ttk.Scrollbar(cart_container, orient="vertical")
+        vsb.pack(side='right', fill='y')
+        
+        hsb = ttk.Scrollbar(cart_container, orient="horizontal")
+        hsb.pack(side='bottom', fill='x')
         
         # Treeview
         columns = ('producto', 'cantidad', 'precio', 'subtotal')
         self.cart_tree = ttk.Treeview(cart_container, columns=columns, show='headings',
-                                      height=5, yscrollcommand=scrollbar.set)
+                                      height=5, 
+                                      yscrollcommand=vsb.set,
+                                      xscrollcommand=hsb.set)
         
-        # Configure scrollbar
-        scrollbar.config(command=self.cart_tree.yview)
+        # Configure scrollbars
+        vsb.config(command=self.cart_tree.yview)
+        hsb.config(command=self.cart_tree.xview)
         
         # Define headings
         self.cart_tree.heading('producto', text='PRODUCTO')
@@ -103,14 +109,14 @@ class SalesScreen(tk.Frame):
         self.total_label = StyledLabel(form_card.content, text="Total: Bs 0.00", style='heading')
         self.total_label.pack(anchor='e', pady=SPACING['sm'])
         
-        # Action buttons
+        # Action buttons - side by side
         btn_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
         btn_frame.pack(fill='x', pady=SPACING['sm'])
         
-        StyledButton(btn_frame, "Completar Venta", style='success',
-                    command=self.complete_sale).pack(fill='x', pady=SPACING['xs'])
-        StyledButton(btn_frame, "Limpiar Carrito", style='danger',
-                    command=self.clear_cart).pack(fill='x', pady=SPACING['xs'])
+        StyledButton(btn_frame, "Completar", style='success',
+                    command=self.complete_sale).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
+        StyledButton(btn_frame, "Limpiar", style='danger',
+                    command=self.clear_cart).pack(side='left', fill='x', expand=True)
         
         # Right side - Sales history
         right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'])
@@ -141,12 +147,19 @@ class SalesScreen(tk.Frame):
         self.history_table = ModernTable(history_card.content, columns, height=20)
         self.history_table.pack(fill='both', expand=True)
         
-        # Configure column widths for better readability
-        self.history_table.tree.column('timestamp', width=145, anchor='center')
+        # Configure column widths and alignment - all left aligned
+        self.history_table.tree.column('timestamp', width=145, anchor='w')
         self.history_table.tree.column('product', width=230, anchor='w')
         self.history_table.tree.column('quantity', width=95, anchor='w')
         self.history_table.tree.column('unit_price', width=90, anchor='w')
         self.history_table.tree.column('subtotal', width=100, anchor='w')
+        
+        # Align headers to left
+        self.history_table.tree.heading('timestamp', anchor='w')
+        self.history_table.tree.heading('product', anchor='w')
+        self.history_table.tree.heading('quantity', anchor='w')
+        self.history_table.tree.heading('unit_price', anchor='w')
+        self.history_table.tree.heading('subtotal', anchor='w')
 
         # Load sales history
         self.load_history_detailed()
@@ -333,16 +346,35 @@ class SalesScreen(tk.Frame):
         self.history_table = ModernTable(self.history_table.master, columns, height=20)
         self.history_table.pack(fill='both', expand=True)
         
-        # Configure column widths for better readability
-        self.history_table.tree.column('timestamp', width=145, anchor='center')
+        # Configure column widths and alignment - all left aligned
+        self.history_table.tree.column('timestamp', width=145, anchor='w')
         self.history_table.tree.column('product', width=230, anchor='w')
         self.history_table.tree.column('quantity', width=95, anchor='w')
         self.history_table.tree.column('unit_price', width=90, anchor='w')
         self.history_table.tree.column('subtotal', width=100, anchor='w')
         
+        # Align headers to left
+        self.history_table.tree.heading('timestamp', anchor='w')
+        self.history_table.tree.heading('product', anchor='w')
+        self.history_table.tree.heading('quantity', anchor='w')
+        self.history_table.tree.heading('unit_price', anchor='w')
+        self.history_table.tree.heading('subtotal', anchor='w')
+        
         # Load data
         history = list_sales_history() or []
-        self.history_table.insert_data(history)
+        
+        # Format data for display with Bs prefix
+        formatted_data = []
+        for row in history:
+            formatted_data.append({
+                'timestamp': row['timestamp'],
+                'product': row['product'],
+                'quantity': row['quantity'],
+                'unit_price': f"Bs {row['unit_price']:.2f}",
+                'subtotal': f"Bs {row['subtotal']:.2f}"
+            })
+        
+        self.history_table.insert_data(formatted_data)
     
     def show_history_menu(self):
         """Show history view dropdown menu"""
@@ -389,10 +421,15 @@ class SalesScreen(tk.Frame):
         self.history_table = ModernTable(self.history_table.master, columns, height=20)
         self.history_table.pack(fill='both', expand=True)
         
-        # Configure column widths
-        self.history_table.tree.column('date', width=200, anchor='center')
-        self.history_table.tree.column('total_sales', width=150, anchor='center')
-        self.history_table.tree.column('total_amount', width=200, anchor='e')
+        # Configure column widths and alignment - all left aligned
+        self.history_table.tree.column('date', width=200, anchor='w')
+        self.history_table.tree.column('total_sales', width=150, anchor='w')
+        self.history_table.tree.column('total_amount', width=200, anchor='w')
+        
+        # Align headers to left
+        self.history_table.tree.heading('date', anchor='w')
+        self.history_table.tree.heading('total_sales', anchor='w')
+        self.history_table.tree.heading('total_amount', anchor='w')
         
         # Load data
         data = sales_summary_by_date() or []

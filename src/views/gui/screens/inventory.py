@@ -85,10 +85,11 @@ class InventoryScreen(tk.Frame):
         # Bind double-click to populate form
         self.table.tree.bind('<Double-Button-1>', self.on_product_double_click)
         
-        # Right side - Add stock form
-        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=365)
+        # Right side - Add stock form with FIXED WIDTH
+        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
         right_frame.pack(side='right', fill='y')
         right_frame.pack_propagate(False)
+        right_frame.config(width=240)  # Force width
         
         form_card = Card(right_frame, title="Agregar Stock")
         form_card.pack(fill='both')
@@ -106,14 +107,14 @@ class InventoryScreen(tk.Frame):
                                        placeholder="0")
         self.quantity_field.pack(fill='x', pady=SPACING['sm'])
         
-        # Buttons
+        # Buttons - side by side
         btn_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
         btn_frame.pack(fill='x', pady=SPACING['md'])
         
-        StyledButton(btn_frame, "Agregar Stock", style='success', 
-                    command=self.add_stock_action).pack(fill='x', pady=SPACING['xs'])
+        StyledButton(btn_frame, "Agregar", style='success', 
+                    command=self.add_stock_action).pack(side='left', fill='x', expand=True, padx=(0, SPACING['xs']))
         StyledButton(btn_frame, "Limpiar", style='secondary', 
-                    command=self.clear_form).pack(fill='x', pady=SPACING['xs'])
+                    command=self.clear_form).pack(side='left', fill='x', expand=True)
         
         # PDF Generation Section
         pdf_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])

@@ -19,29 +19,29 @@ class ModernTable(tk.Frame):
         # Create Treeview
         self.tree = ttk.Treeview(self, columns=list(columns.keys()), show='headings', **kwargs)
         
-        # Configure columns
+        # Configure columns - Ultra compact for 800x600
         column_widths = {
-            'name': 230,           # Wider for product names
-            'barcode': 90,         # Compact for codes
-            'category_name': 120,  # Medium for categories
-            'quantity': 60,        # Compact for numbers
-            'sale_price': 85,      # Compact for prices
-            'location': 125,       # Medium for locations
-            'active': 70,          # Compact for status
-            'id': 50,              # Very compact for IDs
-            'description': 200,    # Wide for descriptions
-            'sale_id': 70,         # Compact for sale IDs
-            'timestamp': 140,      # Medium for dates
-            'product': 200,        # Wide for product names
-            'unit_price': 90,      # Compact for prices
-            'subtotal': 90,        # Compact for totals
+            'name': 90,            # Very compact for product names
+            'barcode': 50,         # Minimal for codes
+            'category_name': 60,   # Minimal for categories
+            'quantity': 45,        # Minimal for numbers
+            'sale_price': 50,      # Minimal for prices
+            'location': 60,        # Minimal for locations
+            'active': 50,          # Minimal for status
+            'id': 35,              # Very compact for IDs
+            'description': 80,     # Compact for descriptions
+            'sale_id': 50,         # Minimal for sale IDs
+            'timestamp': 95,       # Compact for dates
+            'product': 90,         # Compact for product names
+            'unit_price': 50,      # Minimal for prices
+            'subtotal': 50,        # Minimal for totals
         }
         
         for col_id, col_name in columns.items():
-            self.tree.heading(col_id, text=col_name, command=lambda c=col_id: self._sort_column(c))
-            # Use specific width if defined, otherwise default to 150
-            width = column_widths.get(col_id, 150)
-            self.tree.column(col_id, anchor='w', width=width, minwidth=80)
+            self.tree.heading(col_id, text=col_name, anchor='w', command=lambda c=col_id: self._sort_column(c))
+            # Use specific width if defined, otherwise default to 80
+            width = column_widths.get(col_id, 80)
+            self.tree.column(col_id, anchor='w', width=width, minwidth=40)
         
         # Store default widths for reset functionality
         self.default_widths = {}

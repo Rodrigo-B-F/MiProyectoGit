@@ -33,24 +33,24 @@ COLORS = {
     'border_dark': '#95A5A6',      # Medium gray border
 }
 
-# Typography
+# Typography - Reduced for 800x600
 FONTS = {
-    'title': ('Segoe UI', 24, 'bold'),
-    'heading': ('Segoe UI', 18, 'bold'),
-    'subheading': ('Segoe UI', 14, 'bold'),
-    'body': ('Segoe UI', 11),
-    'body_bold': ('Segoe UI', 11, 'bold'),
-    'small': ('Segoe UI', 9),
-    'button': ('Segoe UI', 10, 'bold'),
+    'title': ('Segoe UI', 13, 'bold'),
+    'heading': ('Segoe UI', 11, 'bold'),
+    'subheading': ('Segoe UI', 9, 'bold'),
+    'body': ('Segoe UI', 8),
+    'body_bold': ('Segoe UI', 8, 'bold'),
+    'small': ('Segoe UI', 7),
+    'button': ('Segoe UI', 8, 'bold'),
 }
 
 # Spacing
 SPACING = {
-    'xs': 4,
-    'sm': 8,
-    'md': 16,
-    'lg': 24,
-    'xl': 32,
+    'xs': 3,
+    'sm': 6,
+    'md': 10,
+    'lg': 14,
+    'xl': 18,
 }
 
 # Component Styles
@@ -116,13 +116,13 @@ CARD_STYLE = {
 # Window Configuration
 WINDOW_CONFIG = {
     'bg': COLORS['bg_primary'],
-    'min_width': 1400,
-    'min_height': 900,
+    'min_width': 800,
+    'min_height': 600,
 }
 
 # Sidebar Configuration
 SIDEBAR_CONFIG = {
-    'width': 170,
+    'width': 120,
     'bg': COLORS['bg_sidebar'],
-    'button_height': 50,
+    'button_height': 40,
 }

@@ -75,7 +75,7 @@ def get_top_selling_products(limit=10):
     try:
         db.connect()
         query = (SaleItem
-                 .select(Product.name, fn.SUM(SaleItem.quantity).alias('total_sold'))
+                 .select(Product.name, Product.sale_price, fn.SUM(SaleItem.quantity).alias('total_sold'))
                  .join(Product)
                  .group_by(Product.id)
                  .order_by(fn.SUM(SaleItem.quantity).desc())
@@ -85,6 +85,7 @@ def get_top_selling_products(limit=10):
         for item in query:
             results.append({
                 'product': item.product.name,
+                'sale_price': float(item.product.sale_price),
                 'total_sold': item.total_sold
             })
         return results
@@ -103,7 +104,7 @@ def get_least_selling_products(limit=10):
     try:
         db.connect()
         query = (SaleItem
-                 .select(Product.name, fn.SUM(SaleItem.quantity).alias('total_sold'))
+                 .select(Product.name, Product.sale_price, fn.SUM(SaleItem.quantity).alias('total_sold'))
                  .join(Product)
                  .group_by(Product.id)
                  .order_by(fn.SUM(SaleItem.quantity).asc())
@@ -113,6 +114,7 @@ def get_least_selling_products(limit=10):
         for item in query:
             results.append({
                 'product': item.product.name,
+                'sale_price': float(item.product.sale_price),
                 'total_sold': item.total_sold
             })
         return results
@@ -136,7 +138,7 @@ def get_unsold_products(limit=10):
                            .distinct())
         
         query = (Product
-                 .select(Product.name)
+                 .select(Product.name, Product.sale_price)
                  .where(~(Product.id.in_(sold_product_ids)))
                  .limit(limit))
         
@@ -144,6 +146,7 @@ def get_unsold_products(limit=10):
         for product in query:
             results.append({
                 'product': product.name,
+                'sale_price': float(product.sale_price),
                 'total_sold': 0  # No sales
             })
         return results

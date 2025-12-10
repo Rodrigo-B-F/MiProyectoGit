@@ -18,7 +18,7 @@ __pycache__/
 
 # ---------------------------------------------
 # 3. Archivos de Bases de Datos
-# Permitir subir la base de datos para presentación
+# Permitir subir la base de datos
 # src/data/*.db
 
 # ---------------------------------------------
@@ -53,7 +53,7 @@ coverage.xml
 
 # ---------------------------------------------
 # 8. Reportes Generados
-# Permitir subir reportes para presentación
+# Permitir subir reportes
 # reports/
 # *.pdf
 

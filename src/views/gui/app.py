@@ -23,7 +23,17 @@ class InventoryGUI(tk.Tk):
         
         # Window configuration
         self.title("Sistema de Inventario")
-        self.geometry("1400x900")
+        
+        # Calculate center position for 800x600 window
+        window_width = 800
+        window_height = 600
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        
+        # Set geometry with centered position from the start
+        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
         self.minsize(WINDOW_CONFIG['min_width'], WINDOW_CONFIG['min_height'])
         self.configure(bg=COLORS['bg_primary'])
         
