@@ -3,6 +3,9 @@
 mi_entorno/
 venv/
 env/
+*.egg-info/
+dist/
+build/
 
 # ---------------------------------------------
 # 2. Archivos Generados por Python
@@ -15,7 +18,8 @@ __pycache__/
 
 # ---------------------------------------------
 # 3. Archivos de Bases de Datos
-# src/data/*.db (Comentado para permitir subir la base de datos si se desea, pero usualmente se ignora)
+# Permitir subir la base de datos para presentación
+# src/data/*.db
 
 # ---------------------------------------------
 # 4. Archivos de Desarrollo y Configuración
@@ -23,11 +27,15 @@ __pycache__/
 *.log
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # ---------------------------------------------
 # 5. Carpetas de Trabajo Local y Backups
 copias/
 scripts/
+backups/
 
 # ---------------------------------------------
 # 6. Documentación Interna (Ignorada)
@@ -41,3 +49,22 @@ plan and walktrough/
 htmlcov/
 coverage.xml
 *.cover
+.tox/
+
+# ---------------------------------------------
+# 8. Reportes Generados
+# Permitir subir reportes para presentación
+# reports/
+# *.pdf
+
+# ---------------------------------------------
+# 9. Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------
+# 10. Archivos Temporales
+*.tmp
+*.temp
+*.bak

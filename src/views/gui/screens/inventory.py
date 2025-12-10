@@ -60,6 +60,9 @@ class InventoryScreen(tk.Frame):
         
         StyledButton(button_container, "Ajustar", style='secondary',
                     command=self.adjust_columns, width=8).pack(side='left', padx=(0, SPACING['xs']))
+        self.low_stock_button = StyledButton(button_container, "Stock Bajo", style='secondary',
+                    command=self.show_low_stock_menu, width=10)
+        self.low_stock_button.pack(side='left', padx=(0, SPACING['xs']))
         self.filter_button = StyledButton(button_container, "Filtrar", style='primary',
                     command=self.show_filter_menu, width=8)
         self.filter_button.pack(side='left')
@@ -111,6 +114,16 @@ class InventoryScreen(tk.Frame):
                     command=self.add_stock_action).pack(fill='x', pady=SPACING['xs'])
         StyledButton(btn_frame, "Limpiar", style='secondary', 
                     command=self.clear_form).pack(fill='x', pady=SPACING['xs'])
+        
+        # PDF Generation Section
+        pdf_frame = tk.Frame(form_card.content, bg=COLORS['bg_secondary'])
+        pdf_frame.pack(fill='x', pady=(SPACING['lg'], 0))
+        
+        StyledLabel(pdf_frame, text="Generar Lista de Compras", style='subheading').pack(anchor='w', pady=(0, SPACING['xs']))
+        
+        self.pdf_button = StyledButton(pdf_frame, "📄 Generar PDF", style='success',
+                                      command=self.show_pdf_options, width=20)
+        self.pdf_button.pack(fill='x')
         
         # Load initial data
         self.load_inventory()
@@ -238,6 +251,75 @@ class InventoryScreen(tk.Frame):
         self.name_field.set_value("")
         self.barcode_field.set_value("")
         self.quantity_field.set_value("")
+    
+    def show_low_stock_menu(self):
+        """Show low stock threshold dropdown menu"""
+        menu = tk.Menu(self, tearoff=0, 
+                      bg=COLORS['bg_secondary'],
+                      fg=COLORS['text_primary'],
+                      activebackground=COLORS['primary'],
+                      activeforeground=COLORS['text_white'],
+                      font=FONTS['body'])
+        
+        thresholds = [10, 20, 30, 40, 50, 100]
+        for threshold in thresholds:
+            menu.add_command(label=f"Menos de {threshold}", 
+                            command=lambda t=threshold: self.filter_low_stock(t))
+        
+        # Show menu below button
+        x = self.low_stock_button.winfo_rootx()
+        y = self.low_stock_button.winfo_rooty() + self.low_stock_button.winfo_height()
+        menu.post(x, y)
+    
+    def filter_low_stock(self, threshold):
+        """Filter products with stock below threshold"""
+        from controllers import get_low_stock_products
+        
+        products = get_low_stock_products(threshold) or []
+        self.table.insert_data(products)
+    
+    def show_pdf_options(self):
+        """Show PDF generation threshold dropdown menu"""
+        menu = tk.Menu(self, tearoff=0, 
+                      bg=COLORS['bg_secondary'],
+                      fg=COLORS['text_primary'],
+                      activebackground=COLORS['primary'],
+                      activeforeground=COLORS['text_white'],
+                      font=FONTS['body'])
+        
+        thresholds = [10, 20, 30, 40, 50, 100]
+        for threshold in thresholds:
+            menu.add_command(label=f"Menos de {threshold}", 
+                            command=lambda t=threshold: self.generate_pdf_report(t))
+        
+        # Show menu below button
+        x = self.pdf_button.winfo_rootx()
+        y = self.pdf_button.winfo_rooty() + self.pdf_button.winfo_height()
+        menu.post(x, y)
+    
+    def generate_pdf_report(self, threshold):
+        """Generate PDF purchase report"""
+        from controllers import generate_purchase_report
+        from tkinter import messagebox
+        import os
+        
+        try:
+            pdf_path = generate_purchase_report(threshold)
+            
+            # Show success message
+            result = messagebox.showinfo(
+                "PDF Generado",
+                f"Reporte de compras generado exitosamente.\n\n"
+                f"Ubicación: {pdf_path}\n\n"
+                f"¿Desea abrir el archivo?"
+            )
+            
+            # Open PDF automatically
+            if result == 'ok':
+                os.startfile(pdf_path)
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al generar PDF:\n{str(e)}")
     
     def refresh(self):
         """Refresh screen data"""

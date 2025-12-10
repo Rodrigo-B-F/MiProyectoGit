@@ -23,7 +23,8 @@ from .inventory.stock_management import add_stock
 from .inventory.inventory_reporting import (
     list_products_inventory,
     list_available_products,
-    list_out_of_stock_products
+    list_out_of_stock_products,
+    get_low_stock_products
 )
 from .inventory.category_management import (
     list_categories,
@@ -35,5 +36,11 @@ from .inventory.category_management import (
 from .sale.sale_transaction import record_sale
 from .sale.sale_reporting import (
     list_sales_history,
-    sales_summary_by_date
+    sales_summary_by_date,
+    get_top_selling_products,
+    get_least_selling_products,
+    get_unsold_products
 )
+
+# Reports
+from .reports import generate_purchase_report

@@ -133,3 +133,45 @@ def list_out_of_stock_products():
     finally:
         if not db.is_closed():
             db.close()
+
+def get_low_stock_products(threshold=10):
+    """
+    Obtiene productos con stock bajo (menor al umbral especificado).
+    Retorna: nombre, código, categoría, cantidad, ubicación
+    """
+    try:
+        db.connect()
+        query = (Inventory
+                 .select(Inventory, Product, Category)
+                 .join(Product)
+                 .switch(Product)
+                 .join(Category, JOIN.LEFT_OUTER)
+                 .where(Inventory.quantity < threshold)
+                 .where(Product.active == True)
+                 .order_by(Inventory.quantity.asc()))
+        
+        results = []
+        for inv in query:
+            prod = inv.product
+            # Safely get category name
+            category_name = "Sin Categoría"
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin Categoría"
+            
+            results.append({
+                'name': prod.name,
+                'barcode': prod.barcode,
+                'category_name': category_name,
+                'quantity': inv.quantity,
+                'location': prod.location if prod.location else 'Sin ubicación'
+            })
+        return results
+    except Exception as e:
+        print(f"Error al obtener productos con stock bajo: {e}")
+        return []
+    finally:
+        if not db.is_closed():
+            db.close()
