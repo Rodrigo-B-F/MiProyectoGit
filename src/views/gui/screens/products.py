@@ -80,6 +80,9 @@ class ProductsScreen(tk.Frame):
         self.table = ModernTable(table_card.content, columns, height=15)
         self.table.pack(fill='both', expand=True)
         
+        # Bind double-click to populate edit form
+        self.table.tree.bind('<Double-Button-1>', self.on_product_double_click)
+        
         # Right side - Tabbed Forms
         right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=365)
         right_frame.pack(side='right', fill='y')
@@ -135,7 +138,7 @@ class ProductsScreen(tk.Frame):
         self.name_field = FormField(form_card.content, "Nombre", placeholder="Nombre del producto")
         self.name_field.pack(fill='x', pady=SPACING['sm'])
         
-        self.barcode_field = FormField(form_card.content, "Codigo de Barras", placeholder="Codigo unico")
+        self.barcode_field = FormField(form_card.content, "Código", placeholder="Código del producto")
         self.barcode_field.pack(fill='x', pady=SPACING['sm'])
         
         self.category_combobox = CategoryCombobox(form_card.content, "Categoria")
@@ -260,6 +263,49 @@ class ProductsScreen(tk.Frame):
         products = list_products_inventory(1) or []
         self.table.insert_data(products)
     
+    def on_product_double_click(self, event):
+        """Handle double-click on product row - populate edit form if edit tab is active"""
+        # Only work if edit tab is active
+        if self.current_tab != 'edit':
+            return
+        
+        # Check if click was in the cell region (not heading)
+        region = self.table.tree.identify_region(event.x, event.y)
+        if region != 'cell':
+            return
+        
+        # Check if click was on an actual row (not empty space)
+        row_id = self.table.tree.identify_row(event.y)
+        if not row_id:
+            return
+        
+        # Get selected item
+        selection = self.table.tree.selection()
+        if not selection:
+            return
+        
+        # Get item values
+        item = self.table.tree.item(selection[0])
+        values = item['values']
+        
+        if not values or len(values) < 2:
+            return
+        
+        # Extract product name and barcode from table
+        product_name = values[0]  # NOMBRE column
+        product_barcode = str(values[1])  # CÓDIGO column - convert to string
+        
+        # Search for product by barcode (includes inactive products for editing)
+        from controllers import find_product_for_edit
+        results = find_product_for_edit(product_barcode)
+        
+        if results and len(results) > 0:
+            # Populate edit form with first result
+            product = results[0]
+            self.populate_edit_form(product)
+        else:
+            messagebox.showerror("Error", f"No se pudo cargar el producto: {product_name}")
+    
     def search_products(self):
         """Search products in real-time"""
         query = self.search_entry.get_value().strip()
@@ -272,12 +318,14 @@ class ProductsScreen(tk.Frame):
     
     def search_by_name(self):
         """Search product by name and populate edit form"""
+        from controllers import find_product_for_edit
+        
         name = self.edit_name_field.get_value().strip()
         if not name:
             messagebox.showwarning("Advertencia", "Ingrese un nombre para buscar")
             return
         
-        results = find_product_by_name_or_barcode(name)
+        results = find_product_for_edit(name)  # Includes inactive products
         if results and len(results) > 0:
             # Take first result
             product = results[0]
@@ -287,12 +335,14 @@ class ProductsScreen(tk.Frame):
     
     def search_by_barcode(self):
         """Search product by barcode and populate edit form"""
+        from controllers import find_product_for_edit
+        
         barcode = self.edit_barcode_field.get_value().strip()
         if not barcode:
             messagebox.showwarning("Advertencia", "Ingrese un codigo de barras para buscar")
             return
         
-        results = find_product_by_name_or_barcode(barcode)
+        results = find_product_for_edit(barcode)  # Includes inactive products
         if results and len(results) > 0:
             # Take first result
             product = results[0]
@@ -463,6 +513,18 @@ class ProductsScreen(tk.Frame):
         menu.add_command(label="Todas las Categorias", 
                         command=lambda: self.filter_by_category(None))
         
+        # Add "Activos" option
+        menu.add_command(label="Activos", 
+                        command=lambda: self.filter_by_category("active"))
+        
+        # Add "Inactivos" option
+        menu.add_command(label="Inactivos", 
+                        command=lambda: self.filter_by_category("inactive"))
+        
+        # Add "Sin Categoría" option
+        menu.add_command(label="Sin Categoría", 
+                        command=lambda: self.filter_by_category("no_category"))
+        
         menu.add_separator()
         
         # Get and add categories
@@ -481,12 +543,24 @@ class ProductsScreen(tk.Frame):
         menu.post(x, y)
     
     def filter_by_category(self, category_id):
-        """Filter products by category"""
-        from controllers import list_products_by_category
+        """Filter products by category or status"""
+        from controllers import list_products_by_category, list_products_without_category, list_products_inventory
         
         if category_id is None:
             # Show all products
             self.load_products()
+        elif category_id == "active":
+            # Show only active products
+            products = list_products_inventory(1) or []  # 1 = active
+            self.table.insert_data(products)
+        elif category_id == "inactive":
+            # Show only inactive products
+            products = list_products_inventory(0) or []  # 0 = inactive
+            self.table.insert_data(products)
+        elif category_id == "no_category":
+            # Show products without category
+            products = list_products_without_category() or []
+            self.table.insert_data(products)
         else:
             # Show products from selected category
             products = list_products_by_category(category_id) or []

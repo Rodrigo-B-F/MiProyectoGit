@@ -11,6 +11,7 @@ from .product.product_crud import (
 )
 from .product.product_search import (
     find_product_by_name_or_barcode,
+    find_product_for_edit,
     list_products_by_category,
     list_products_without_category,
     get_product_details_by_id

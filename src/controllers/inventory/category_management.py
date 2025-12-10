@@ -48,6 +48,12 @@ def delete_category(category_id):
         db.connect()
         category = Category.get_by_id(category_id)
         category_name = category.name
+        
+        # Update all products with this category to NULL
+        from models import Product
+        Product.update(category=None).where(Product.category == category).execute()
+        
+        # Now delete the category
         category.delete_instance()
         return True, f"Categoría '{category_name}' eliminada correctamente."
     except Category.DoesNotExist:

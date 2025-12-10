@@ -24,9 +24,12 @@ def find_product_by_name_or_barcode(query):
             .switch(Product)
             .join(Category, JOIN.LEFT_OUTER)
             .where(
-                (Product.name.contains(query)) |
-                (Product.barcode.contains(query)) |
-                ((Product.category.is_null(False)) & (Category.name.contains(query)))
+                (
+                    (Product.name.contains(query)) |
+                    (Product.barcode.contains(query)) |
+                    ((Product.category.is_null(False)) & (Category.name.contains(query)))
+                ) &
+                (Product.active == True)  # Only show active products
             )
         )
 
@@ -66,6 +69,64 @@ def find_product_by_name_or_barcode(query):
         if not db.is_closed():
             db.close()
 
+def find_product_for_edit(query):
+    """
+    Busca un producto por nombre o código de barras INCLUYENDO inactivos.
+    Usado para el formulario de edición donde necesitas poder modificar productos inactivos.
+    """
+    try:
+        if db.is_closed():
+            db.connect()
+
+        # JOIN con Category e Inventory para buscar - SIN filtro de activo
+        product_query = (
+            Product
+            .select(Product, Inventory, Category)
+            .join(Inventory, JOIN.LEFT_OUTER)
+            .switch(Product)
+            .join(Category, JOIN.LEFT_OUTER)
+            .where(
+                (Product.name.contains(query)) |
+                (Product.barcode.contains(query))
+            )
+        )
+
+        results = []
+
+        for prod in product_query:
+            # Obtener inventario real
+            inv = Inventory.get_or_none(Inventory.product == prod)
+            quantity = inv.quantity if inv else 0
+
+            # Safely get category name
+            category_name = "Sin Categoría"
+            if prod.category_id:
+                try:
+                    category_name = prod.category.name
+                except:
+                    category_name = "Sin Categoría"
+
+            # Armar diccionario del producto
+            results.append({
+                "id": prod.id,
+                "name": prod.name,
+                "barcode": prod.barcode,
+                "category_name": category_name,
+                "location": prod.location,
+                "sale_price": prod.sale_price,
+                "quantity": quantity,
+                "active": prod.active
+            })
+
+        return results
+
+    except Exception as e:
+        print(f"Error al buscar producto para editar: {e}")
+        return []
+    finally:
+        if not db.is_closed():
+            db.close()
+
 def list_products_by_category(category_id):
     """
     Lista todos los productos de una categoría específica por su ID.
@@ -79,7 +140,7 @@ def list_products_by_category(category_id):
                  .join(Category)
                  .switch(Product)
                  .join(Inventory, JOIN.LEFT_OUTER)
-                 .where(Category.id == category_id))
+                 .where((Category.id == category_id) & (Product.active == True)))
         
         results = []
         for prod in query:
@@ -116,7 +177,7 @@ def list_products_without_category():
         query = (Product
                  .select(Product, Inventory)
                  .join(Inventory, JOIN.LEFT_OUTER)
-                 .where(Product.category.is_null()))
+                 .where((Product.category.is_null()) & (Product.active == True)))
         
         results = []
         for prod in query:

@@ -79,6 +79,9 @@ class InventoryScreen(tk.Frame):
         self.table = ModernTable(table_card.content, columns, height=20)
         self.table.pack(fill='both', expand=True)
         
+        # Bind double-click to populate form
+        self.table.tree.bind('<Double-Button-1>', self.on_product_double_click)
+        
         # Right side - Add stock form
         right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=365)
         right_frame.pack(side='right', fill='y')
@@ -88,8 +91,12 @@ class InventoryScreen(tk.Frame):
         form_card.pack(fill='both')
         
         # Form fields
-        self.barcode_field = FormField(form_card.content, "Codigo de Barras", 
-                                      placeholder="Codigo del producto")
+        self.name_field = FormField(form_card.content, "Nombre", 
+                                   placeholder="Nombre del producto")
+        self.name_field.pack(fill='x', pady=SPACING['sm'])
+        
+        self.barcode_field = FormField(form_card.content, "Código", 
+                                      placeholder="Código del producto")
         self.barcode_field.pack(fill='x', pady=SPACING['sm'])
         
         self.quantity_field = FormField(form_card.content, "Cantidad a Agregar", 
@@ -112,6 +119,39 @@ class InventoryScreen(tk.Frame):
         """Load inventory data"""
         products = list_products_inventory(1) or []
         self.table.insert_data(products)
+    
+    def on_product_double_click(self, event):
+        """Handle double-click on product row - populate name and barcode fields"""
+        # Check if click was in the cell region (not heading)
+        region = self.table.tree.identify_region(event.x, event.y)
+        if region != 'cell':
+            return
+        
+        # Check if click was on an actual row (not empty space)
+        row_id = self.table.tree.identify_row(event.y)
+        if not row_id:
+            return
+        
+        # Get selected item
+        selection = self.table.tree.selection()
+        if not selection:
+            return
+        
+        # Get item values
+        item = self.table.tree.item(selection[0])
+        values = item['values']
+        
+        if not values or len(values) < 2:
+            return
+        
+        # Extract product name and barcode from table
+        product_name = values[0]  # NOMBRE column
+        product_barcode = str(values[1])  # CÓDIGO column - convert to string
+        
+        # Populate form fields (only name and barcode, quantity stays at 0)
+        self.name_field.set_value(product_name)
+        self.barcode_field.set_value(product_barcode)
+        # quantity_field keeps its placeholder "0"
     
     def search_products(self):
         """Search products in real-time"""
@@ -195,6 +235,7 @@ class InventoryScreen(tk.Frame):
     
     def clear_form(self):
         """Clear form fields"""
+        self.name_field.set_value("")
         self.barcode_field.set_value("")
         self.quantity_field.set_value("")
     
