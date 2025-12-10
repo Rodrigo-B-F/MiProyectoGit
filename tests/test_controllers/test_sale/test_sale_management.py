@@ -4,7 +4,7 @@ Tests for Sale Management Controller
 
 import pytest
 from controllers import record_sale
-from models import Sale, SaleItem
+from models import Sale, SaleItem, Inventory
 
 
 class TestRecordSale:
@@ -26,8 +26,8 @@ class TestRecordSale:
         assert "registrada" in message.lower()
         
         # Verify inventory was reduced
-        sample_inventory.refresh()
-        assert sample_inventory.quantity == initial_quantity - 5
+        updated_inventory = Inventory.get_by_id(sample_inventory.id)
+        assert updated_inventory.quantity == initial_quantity - 5
         
         # Verify sale was created
         assert Sale.select().count() == 1

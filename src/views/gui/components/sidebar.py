@@ -30,7 +30,7 @@ class Sidebar(tk.Frame):
                         bg=SIDEBAR_CONFIG['bg'],
                         fg=COLORS['text_white'],
                         justify='left')
-        title.pack(anchor='w')
+        title.pack(anchor='w', expand=True)  # Center vertically with expand
         
         # Separator
         separator = tk.Frame(self, bg=COLORS['border'], height=1)

@@ -9,6 +9,7 @@ from controllers import (
     toggle_product_status,
     find_product_by_name_or_barcode
 )
+from models import Product
 
 
 class TestAddProduct:
@@ -85,8 +86,9 @@ class TestToggleProductStatus:
         
         assert success is True
         # Verify status changed
-        sample_product.refresh()
-        assert sample_product.active != initial_status
+        # Verify status changed
+        updated_product = Product.get_by_id(sample_product.id)
+        assert updated_product.active != initial_status
     
     def test_toggle_nonexistent_product(self, test_db):
         """Test toggling non-existent product"""

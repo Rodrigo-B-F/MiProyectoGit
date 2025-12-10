@@ -82,11 +82,37 @@ class ProductsScreen(tk.Frame):
         # Bind double-click to populate edit form
         self.table.tree.bind('<Double-Button-1>', self.on_product_double_click)
         
-        # Right side - Forms with FIXED WIDTH
-        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
-        right_frame.pack(side='right', fill='y')
-        right_frame.pack_propagate(False)  # Prevent frame from shrinking
-        right_frame.config(width=240)  # Force width
+        # Right side - Forms with RESPONSIVE WIDTH (240px min, 400px max)
+        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'])
+        right_frame.pack(side='right', fill='both')
+        
+        # Store reference for resize handler
+        self.right_frame = right_frame
+        self.min_form_width = 240
+        self.max_form_width = 400
+        
+        # Bind to main container resize to adjust form width
+        def adjust_form_width(event=None):
+            if event and event.widget != main_container:
+                return
+            
+            # Get available width
+            total_width = main_container.winfo_width()
+            if total_width <= 1:
+                return  # Not yet rendered
+            
+            # Calculate form width (20-30% of total, between min and max)
+            desired_width = int(total_width * 0.25)
+            form_width = max(self.min_form_width, min(desired_width, self.max_form_width))
+            
+            # Update frame width
+            right_frame.config(width=form_width)
+        
+        main_container.bind('<Configure>', adjust_form_width)
+        
+        # Set initial width
+        right_frame.config(width=self.min_form_width)
+        right_frame.pack_propagate(False)
         
         # Tab buttons - BOTH BUTTONS IN ONE ROW
         tab_frame = tk.Frame(right_frame, bg=COLORS['bg_primary'])

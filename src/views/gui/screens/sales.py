@@ -29,11 +29,31 @@ class SalesScreen(tk.Frame):
         main_container = tk.Frame(self, bg=COLORS['bg_primary'])
         main_container.pack(fill='both', expand=True, padx=SPACING['lg'], pady=SPACING['md'])
         
-        # Left side - Sales form with FIXED WIDTH
-        left_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
-        left_frame.pack(side='left', fill='y', padx=(0, SPACING['sm']))
+        # Left side - Sales form with RESPONSIVE WIDTH (240px min, 400px max)
+        left_frame = tk.Frame(main_container, bg=COLORS['bg_primary'])
+        left_frame.pack(side='left', fill='both', padx=(0, SPACING['sm']))
+        
+        # Store reference for resize handler
+        self.left_frame = left_frame
+        self.min_form_width = 240
+        self.max_form_width = 400
+        
+        # Bind to main container resize to adjust form width
+        def adjust_form_width(event=None):
+            if event and event.widget != main_container:
+                return
+            
+            total_width = main_container.winfo_width()
+            if total_width <= 1:
+                return
+            
+            desired_width = int(total_width * 0.25)
+            form_width = max(self.min_form_width, min(desired_width, self.max_form_width))
+            left_frame.config(width=form_width)
+        
+        main_container.bind('<Configure>', adjust_form_width)
+        left_frame.config(width=self.min_form_width)
         left_frame.pack_propagate(False)
-        left_frame.config(width=240)  # Force width
         
         form_card = Card(left_frame, title="Nueva Venta")
         form_card.pack(fill='both', expand=True)

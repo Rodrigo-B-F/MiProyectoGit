@@ -10,7 +10,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
-from models import db, Product, Category, Inventory, Sale, SaleItem
+from models import db, Product, Category, Inventory, Sale, SaleItem, StockMovement
 
 
 @pytest.fixture(scope='function')
@@ -24,13 +24,25 @@ def test_db():
         db.close()
     
     db.connect()
-    db.create_tables([Product, Category, Inventory, Sale, SaleItem])
+    db.create_tables([Product, Category, Inventory, Sale, SaleItem, StockMovement])
+    
+    # Monkeypatch connect and close to be no-ops during test execution
+    # This prevents controllers from messing with the test database connection
+    original_connect = db.connect
+    original_close = db.close
+    
+    db.connect = lambda *args, **kwargs: None
+    db.close = lambda *args, **kwargs: None
     
     yield db
     
+    # Restore original methods for cleanup
+    db.connect = original_connect
+    db.close = original_close
+    
     # Clean up
-    db.drop_tables([Product, Category, Inventory, Sale, SaleItem])
     if not db.is_closed():
+        db.drop_tables([Product, Category, Inventory, Sale, SaleItem, StockMovement])
         db.close()
 
 
@@ -66,7 +78,4 @@ def sample_inventory(test_db, sample_product):
         quantity=50,
         location="Estante A1"
     )
-    # Close connection so controller functions can open it
-    if not test_db.is_closed():
-        test_db.close()
     return inventory

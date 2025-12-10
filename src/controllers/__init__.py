@@ -16,7 +16,7 @@ from .product.product_search import (
     list_products_without_category,
     get_product_details_by_id
 )
-from .product.product_business import apply_expiring_product_offer
+
 
 # Inventory Controller
 from .inventory.stock_management import add_stock

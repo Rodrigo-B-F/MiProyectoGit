@@ -74,14 +74,34 @@ class CategoriesScreen(tk.Frame):
         self.table.tree.column('name', width=75, minwidth=60)
         self.table.tree.column('description', width=225, minwidth=150)
         
-        # Bind row selection
-        self.table.tree.bind('<<TreeviewSelect>>', self.on_category_select)
+        # Bind double-click to populate form
+        self.table.tree.bind('<Double-Button-1>', self.on_category_select)
         
-        # Right side - Edit form with FIXED WIDTH
-        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'], width=240)
-        right_frame.pack(side='right', fill='y')
+        # Right side - Edit form with RESPONSIVE WIDTH (240px min, 400px max)
+        right_frame = tk.Frame(main_container, bg=COLORS['bg_primary'])
+        right_frame.pack(side='right', fill='both')
+        
+        # Store reference for resize handler
+        self.right_frame = right_frame
+        self.min_form_width = 240
+        self.max_form_width = 400
+        
+        # Bind to main container resize to adjust form width
+        def adjust_form_width(event=None):
+            if event and event.widget != main_container:
+                return
+            
+            total_width = main_container.winfo_width()
+            if total_width <= 1:
+                return
+            
+            desired_width = int(total_width * 0.25)
+            form_width = max(self.min_form_width, min(desired_width, self.max_form_width))
+            right_frame.config(width=form_width)
+        
+        main_container.bind('<Configure>', adjust_form_width)
+        right_frame.config(width=self.min_form_width)
         right_frame.pack_propagate(False)
-        right_frame.config(width=240)  # Force width
         
         edit_card = Card(right_frame, title="Editar Categoria")
         edit_card.pack(fill='both', expand=True)
@@ -163,13 +183,21 @@ class CategoriesScreen(tk.Frame):
         self.table.tree.column('description', width=225)
     
     def on_category_select(self, event):
-        """Handle category selection from table"""
-        selection = self.table.tree.selection()
-        if not selection:
+        """Handle category double-click from table"""
+        # Get the item that was clicked
+        region = self.table.tree.identify('region', event.x, event.y)
+        
+        # Only proceed if clicked on a cell (not header or empty space)
+        if region != 'cell':
             return
         
-        # Get selected item
-        item = self.table.tree.item(selection[0])
+        # Get the clicked item
+        item_id = self.table.tree.identify_row(event.y)
+        if not item_id:
+            return
+        
+        # Get item data
+        item = self.table.tree.item(item_id)
         values = item['values']
         
         if values:
